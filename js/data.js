@@ -1,0 +1,131 @@
+// ============================================
+// CollegeTrue - School & Major Data
+// Sources: College Scorecard API, BLS OES 2023
+// ============================================
+
+const SCHOOLS = {
+  "nyu": { name: "NYU", fullName: "New York University", tuition: 58168, cityMod: 1.38, type: "Private", state: "NY", city: "New York City" },
+  "ohio state": { name: "Ohio State", fullName: "Ohio State University", tuition: 11518, cityMod: 0.87, type: "Public", state: "OH", city: "Columbus" },
+  "ohio state university": { name: "Ohio State", fullName: "Ohio State University", tuition: 11518, cityMod: 0.87, type: "Public", state: "OH", city: "Columbus" },
+  "osu": { name: "Ohio State", fullName: "Ohio State University", tuition: 11518, cityMod: 0.87, type: "Public", state: "OH", city: "Columbus" },
+  "umich": { name: "U of Michigan", fullName: "University of Michigan", tuition: 16736, cityMod: 0.92, type: "Public", state: "MI", city: "Ann Arbor" },
+  "university of michigan": { name: "U of Michigan", fullName: "University of Michigan", tuition: 16736, cityMod: 0.92, type: "Public", state: "MI", city: "Ann Arbor" },
+  "u of michigan": { name: "U of Michigan", fullName: "University of Michigan", tuition: 16736, cityMod: 0.92, type: "Public", state: "MI", city: "Ann Arbor" },
+  "michigan": { name: "U of Michigan", fullName: "University of Michigan", tuition: 16736, cityMod: 0.92, type: "Public", state: "MI", city: "Ann Arbor" },
+  "harvard": { name: "Harvard", fullName: "Harvard University", tuition: 57261, cityMod: 1.32, type: "Private", state: "MA", city: "Cambridge" },
+  "mit": { name: "MIT", fullName: "Massachusetts Institute of Technology", tuition: 57986, cityMod: 1.32, type: "Private", state: "MA", city: "Cambridge" },
+  "stanford": { name: "Stanford", fullName: "Stanford University", tuition: 62484, cityMod: 1.48, type: "Private", state: "CA", city: "Stanford" },
+  "uc berkeley": { name: "UC Berkeley", fullName: "University of California, Berkeley", tuition: 14284, cityMod: 1.35, type: "Public", state: "CA", city: "Berkeley" },
+  "berkeley": { name: "UC Berkeley", fullName: "University of California, Berkeley", tuition: 14284, cityMod: 1.35, type: "Public", state: "CA", city: "Berkeley" },
+  "ucla": { name: "UCLA", fullName: "University of California, Los Angeles", tuition: 13431, cityMod: 1.38, type: "Public", state: "CA", city: "Los Angeles" },
+  "columbia": { name: "Columbia", fullName: "Columbia University", tuition: 65524, cityMod: 1.42, type: "Private", state: "NY", city: "New York City" },
+  "yale": { name: "Yale", fullName: "Yale University", tuition: 62250, cityMod: 1.12, type: "Private", state: "CT", city: "New Haven" },
+  "princeton": { name: "Princeton", fullName: "Princeton University", tuition: 59710, cityMod: 1.08, type: "Private", state: "NJ", city: "Princeton" },
+  "northwestern": { name: "Northwestern", fullName: "Northwestern University", tuition: 63468, cityMod: 1.05, type: "Private", state: "IL", city: "Evanston" },
+  "purdue": { name: "Purdue", fullName: "Purdue University", tuition: 9992, cityMod: 0.76, type: "Public", state: "IN", city: "West Lafayette" },
+  "penn": { name: "UPenn", fullName: "University of Pennsylvania", tuition: 63452, cityMod: 1.22, type: "Private", state: "PA", city: "Philadelphia" },
+  "upenn": { name: "UPenn", fullName: "University of Pennsylvania", tuition: 63452, cityMod: 1.22, type: "Private", state: "PA", city: "Philadelphia" },
+  "university of pennsylvania": { name: "UPenn", fullName: "University of Pennsylvania", tuition: 63452, cityMod: 1.22, type: "Private", state: "PA", city: "Philadelphia" },
+  "penn state": { name: "Penn State", fullName: "Penn State University", tuition: 19286, cityMod: 0.82, type: "Public", state: "PA", city: "State College" },
+  "georgia tech": { name: "Georgia Tech", fullName: "Georgia Institute of Technology", tuition: 12682, cityMod: 0.94, type: "Public", state: "GA", city: "Atlanta" },
+  "gt": { name: "Georgia Tech", fullName: "Georgia Institute of Technology", tuition: 12682, cityMod: 0.94, type: "Public", state: "GA", city: "Atlanta" },
+  "ut austin": { name: "UT Austin", fullName: "University of Texas at Austin", tuition: 11752, cityMod: 0.97, type: "Public", state: "TX", city: "Austin" },
+  "university of texas": { name: "UT Austin", fullName: "University of Texas at Austin", tuition: 11752, cityMod: 0.97, type: "Public", state: "TX", city: "Austin" },
+  "texas": { name: "UT Austin", fullName: "University of Texas at Austin", tuition: 11752, cityMod: 0.97, type: "Public", state: "TX", city: "Austin" },
+  "unc": { name: "UNC Chapel Hill", fullName: "UNC Chapel Hill", tuition: 9005, cityMod: 0.86, type: "Public", state: "NC", city: "Chapel Hill" },
+  "unc chapel hill": { name: "UNC Chapel Hill", fullName: "UNC Chapel Hill", tuition: 9005, cityMod: 0.86, type: "Public", state: "NC", city: "Chapel Hill" },
+  "vanderbilt": { name: "Vanderbilt", fullName: "Vanderbilt University", tuition: 60348, cityMod: 0.93, type: "Private", state: "TN", city: "Nashville" },
+  "duke": { name: "Duke", fullName: "Duke University", tuition: 63054, cityMod: 0.90, type: "Private", state: "NC", city: "Durham" },
+  "boston university": { name: "Boston University", fullName: "Boston University", tuition: 61050, cityMod: 1.28, type: "Private", state: "MA", city: "Boston" },
+  "bu": { name: "Boston University", fullName: "Boston University", tuition: 61050, cityMod: 1.28, type: "Private", state: "MA", city: "Boston" },
+  "northeastern": { name: "Northeastern", fullName: "Northeastern University", tuition: 60192, cityMod: 1.28, type: "Private", state: "MA", city: "Boston" },
+  "university of florida": { name: "U of Florida", fullName: "University of Florida", tuition: 6381, cityMod: 0.86, type: "Public", state: "FL", city: "Gainesville" },
+  "uf": { name: "U of Florida", fullName: "University of Florida", tuition: 6381, cityMod: 0.86, type: "Public", state: "FL", city: "Gainesville" },
+  "florida": { name: "U of Florida", fullName: "University of Florida", tuition: 6381, cityMod: 0.86, type: "Public", state: "FL", city: "Gainesville" },
+  "florida state": { name: "Florida State", fullName: "Florida State University", tuition: 6517, cityMod: 0.84, type: "Public", state: "FL", city: "Tallahassee" },
+  "fsu": { name: "Florida State", fullName: "Florida State University", tuition: 6517, cityMod: 0.84, type: "Public", state: "FL", city: "Tallahassee" },
+  "virginia": { name: "UVA", fullName: "University of Virginia", tuition: 18084, cityMod: 0.90, type: "Public", state: "VA", city: "Charlottesville" },
+  "uva": { name: "UVA", fullName: "University of Virginia", tuition: 18084, cityMod: 0.90, type: "Public", state: "VA", city: "Charlottesville" },
+  "university of virginia": { name: "UVA", fullName: "University of Virginia", tuition: 18084, cityMod: 0.90, type: "Public", state: "VA", city: "Charlottesville" },
+  "tulane": { name: "Tulane", fullName: "Tulane University", tuition: 60230, cityMod: 0.97, type: "Private", state: "LA", city: "New Orleans" },
+  "rice": { name: "Rice", fullName: "Rice University", tuition: 54960, cityMod: 1.02, type: "Private", state: "TX", city: "Houston" },
+  "drexel": { name: "Drexel", fullName: "Drexel University", tuition: 57895, cityMod: 1.18, type: "Private", state: "PA", city: "Philadelphia" },
+  "temple": { name: "Temple", fullName: "Temple University", tuition: 20816, cityMod: 1.12, type: "Public", state: "PA", city: "Philadelphia" },
+  "rutgers": { name: "Rutgers", fullName: "Rutgers University", tuition: 15908, cityMod: 1.08, type: "Public", state: "NJ", city: "New Brunswick" },
+  "carnegie mellon": { name: "Carnegie Mellon", fullName: "Carnegie Mellon University", tuition: 61344, cityMod: 1.05, type: "Private", state: "PA", city: "Pittsburgh" },
+  "cmu": { name: "Carnegie Mellon", fullName: "Carnegie Mellon University", tuition: 61344, cityMod: 1.05, type: "Private", state: "PA", city: "Pittsburgh" },
+  "cornell": { name: "Cornell", fullName: "Cornell University", tuition: 62456, cityMod: 0.88, type: "Private", state: "NY", city: "Ithaca" },
+  "dartmouth": { name: "Dartmouth", fullName: "Dartmouth College", tuition: 62430, cityMod: 0.85, type: "Private", state: "NH", city: "Hanover" },
+  "brown": { name: "Brown", fullName: "Brown University", tuition: 65146, cityMod: 1.12, type: "Private", state: "RI", city: "Providence" },
+  "emory": { name: "Emory", fullName: "Emory University", tuition: 58948, cityMod: 0.96, type: "Private", state: "GA", city: "Atlanta" },
+  "wake forest": { name: "Wake Forest", fullName: "Wake Forest University", tuition: 61696, cityMod: 0.87, type: "Private", state: "NC", city: "Winston-Salem" },
+  "tufts": { name: "Tufts", fullName: "Tufts University", tuition: 64978, cityMod: 1.25, type: "Private", state: "MA", city: "Medford" },
+  "georgetown": { name: "Georgetown", fullName: "Georgetown University", tuition: 63576, cityMod: 1.28, type: "Private", state: "DC", city: "Washington D.C." },
+  "george washington": { name: "George Washington", fullName: "George Washington University", tuition: 61890, cityMod: 1.30, type: "Private", state: "DC", city: "Washington D.C." },
+  "gwu": { name: "George Washington", fullName: "George Washington University", tuition: 61890, cityMod: 1.30, type: "Private", state: "DC", city: "Washington D.C." },
+  "indiana": { name: "Indiana University", fullName: "Indiana University Bloomington", tuition: 11000, cityMod: 0.80, type: "Public", state: "IN", city: "Bloomington" },
+  "iu": { name: "Indiana University", fullName: "Indiana University Bloomington", tuition: 11000, cityMod: 0.80, type: "Public", state: "IN", city: "Bloomington" },
+  "iowa": { name: "U of Iowa", fullName: "University of Iowa", tuition: 9800, cityMod: 0.80, type: "Public", state: "IA", city: "Iowa City" },
+  "university of iowa": { name: "U of Iowa", fullName: "University of Iowa", tuition: 9800, cityMod: 0.80, type: "Public", state: "IA", city: "Iowa City" },
+  "uc san diego": { name: "UC San Diego", fullName: "University of California, San Diego", tuition: 14300, cityMod: 1.32, type: "Public", state: "CA", city: "San Diego" },
+  "ucsd": { name: "UC San Diego", fullName: "University of California, San Diego", tuition: 14300, cityMod: 1.32, type: "Public", state: "CA", city: "San Diego" },
+  "usc": { name: "USC", fullName: "University of Southern California", tuition: 65237, cityMod: 1.38, type: "Private", state: "CA", city: "Los Angeles" },
+  "university of southern california": { name: "USC", fullName: "University of Southern California", tuition: 65237, cityMod: 1.38, type: "Private", state: "CA", city: "Los Angeles" },
+  "uc davis": { name: "UC Davis", fullName: "University of California, Davis", tuition: 14312, cityMod: 1.05, type: "Public", state: "CA", city: "Davis" },
+  "uc santa barbara": { name: "UC Santa Barbara", fullName: "UC Santa Barbara", tuition: 14400, cityMod: 1.25, type: "Public", state: "CA", city: "Santa Barbara" },
+  "ucsb": { name: "UC Santa Barbara", fullName: "UC Santa Barbara", tuition: 14400, cityMod: 1.25, type: "Public", state: "CA", city: "Santa Barbara" },
+  "washington": { name: "U of Washington", fullName: "University of Washington", tuition: 12077, cityMod: 1.28, type: "Public", state: "WA", city: "Seattle" },
+  "uw": { name: "U of Washington", fullName: "University of Washington", tuition: 12077, cityMod: 1.28, type: "Public", state: "WA", city: "Seattle" },
+  "university of washington": { name: "U of Washington", fullName: "University of Washington", tuition: 12077, cityMod: 1.28, type: "Public", state: "WA", city: "Seattle" },
+  "michigan state": { name: "Michigan State", fullName: "Michigan State University", tuition: 15600, cityMod: 0.83, type: "Public", state: "MI", city: "East Lansing" },
+  "msu": { name: "Michigan State", fullName: "Michigan State University", tuition: 15600, cityMod: 0.83, type: "Public", state: "MI", city: "East Lansing" },
+  "minnesota": { name: "U of Minnesota", fullName: "University of Minnesota", tuition: 15312, cityMod: 0.98, type: "Public", state: "MN", city: "Minneapolis" },
+  "university of minnesota": { name: "U of Minnesota", fullName: "University of Minnesota", tuition: 15312, cityMod: 0.98, type: "Public", state: "MN", city: "Minneapolis" },
+  "umn": { name: "U of Minnesota", fullName: "University of Minnesota", tuition: 15312, cityMod: 0.98, type: "Public", state: "MN", city: "Minneapolis" },
+  "illinois": { name: "U of Illinois", fullName: "University of Illinois Urbana-Champaign", tuition: 16862, cityMod: 0.84, type: "Public", state: "IL", city: "Champaign" },
+  "uiuc": { name: "U of Illinois", fullName: "University of Illinois Urbana-Champaign", tuition: 16862, cityMod: 0.84, type: "Public", state: "IL", city: "Champaign" },
+  "university of illinois": { name: "U of Illinois", fullName: "University of Illinois Urbana-Champaign", tuition: 16862, cityMod: 0.84, type: "Public", state: "IL", city: "Champaign" },
+  "notre dame": { name: "Notre Dame", fullName: "University of Notre Dame", tuition: 61467, cityMod: 0.86, type: "Private", state: "IN", city: "Notre Dame" },
+  "boston college": { name: "Boston College", fullName: "Boston College", tuition: 63970, cityMod: 1.28, type: "Private", state: "MA", city: "Chestnut Hill" },
+  "bc": { name: "Boston College", fullName: "Boston College", tuition: 63970, cityMod: 1.28, type: "Private", state: "MA", city: "Chestnut Hill" },
+  "wustl": { name: "Wash U St. Louis", fullName: "Washington University in St. Louis", tuition: 62620, cityMod: 0.90, type: "Private", state: "MO", city: "St. Louis" },
+  "washington university": { name: "Wash U St. Louis", fullName: "Washington University in St. Louis", tuition: 62620, cityMod: 0.90, type: "Private", state: "MO", city: "St. Louis" },
+  "american": { name: "American University", fullName: "American University", tuition: 53530, cityMod: 1.28, type: "Private", state: "DC", city: "Washington D.C." },
+  "american university": { name: "American University", fullName: "American University", tuition: 53530, cityMod: 1.28, type: "Private", state: "DC", city: "Washington D.C." },
+};
+
+// All school names for autocomplete
+const SCHOOL_NAMES_LIST = [
+  "NYU", "Ohio State", "UMich", "Harvard", "MIT", "Stanford", "UC Berkeley", "UCLA",
+  "Columbia", "Yale", "Princeton", "Northwestern", "Purdue", "UPenn", "Penn State",
+  "Georgia Tech", "UT Austin", "UNC", "Vanderbilt", "Duke", "Boston University",
+  "Northeastern", "University of Florida", "Florida State", "UVA", "Tulane", "Rice",
+  "Drexel", "Temple", "Rutgers", "Carnegie Mellon", "Cornell", "Dartmouth", "Brown",
+  "Emory", "Wake Forest", "Tufts", "Georgetown", "George Washington", "Indiana University",
+  "U of Iowa", "UC San Diego", "USC", "UC Davis", "UC Santa Barbara", "U of Washington",
+  "Michigan State", "U of Minnesota", "U of Illinois (UIUC)", "Notre Dame", "Boston College",
+  "Wash U St. Louis", "American University"
+];
+
+// Major data - salary from BLS OES 2023 median for entry-level (75th percentile range)
+const MAJORS = {
+  cs:         { label: "Computer Science / Engineering",      salary: 95000,  gradBonus: 1.12 },
+  business:   { label: "Business / Finance / Economics",      salary: 62000,  gradBonus: 1.08 },
+  nursing:    { label: "Nursing / Healthcare",                salary: 71000,  gradBonus: 1.05 },
+  education:  { label: "Education / Teaching",               salary: 42000,  gradBonus: 1.04 },
+  psychology: { label: "Psychology / Social Sciences",        salary: 41000,  gradBonus: 1.03 },
+  arts:       { label: "Arts / Humanities / Communications",  salary: 39000,  gradBonus: 1.02 },
+  bio:        { label: "Biology / Pre-Med",                  salary: 45000,  gradBonus: 1.06 },
+  law:        { label: "Pre-Law / Political Science",         salary: 47000,  gradBonus: 1.06 },
+  math:       { label: "Mathematics / Statistics",           salary: 78000,  gradBonus: 1.10 },
+  enviro:     { label: "Environmental Science",              salary: 52000,  gradBonus: 1.04 },
+};
+
+// Aid multipliers - what % of tuition is covered by grants/scholarships
+const AID_RATES = {
+  low:  0.06,   // <6% - primarily loans
+  mid:  0.27,   // ~27% - mix of grants and loans
+  high: 0.50,   // ~50% - significant grant aid
+};
+
+const LIVING_BASE = 15200; // national avg annual room + board + expenses
