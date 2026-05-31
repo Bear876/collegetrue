@@ -12,289 +12,236 @@ function lookupSchool(raw) {
   }
 
   // Partial word match
-  const genericWords = new Set(['college', 'university', 'state', 'campus', 'institute', 'school']);
-  const words = key.split(' ').filter(w => w.length > 3 && !genericWords.has(w));
+  const genericWords = new Set(['college', 'university', 'institute', 'school', 'state', 'the', 'of', 'at', 'a', 'and']);
+  const inputWords = key.split(/\s+/).filter(w => w.length > 2 && !genericWords.has(w));
+
   for (const k of Object.keys(SCHOOLS)) {
-    for (const word of words) {
-      if (k.includes(word)) return { ...SCHOOLS[k] };
+    const kWords = k.split(/\s+/).filter(w => w.length > 2 && !genericWords.has(w));
+    const hits = inputWords.filter(w => kWords.some(kw => kw.includes(w) || w.includes(kw)));
+    if (hits.length > 0 && hits.length >= Math.min(inputWords.length, 1)) {
+      return { ...SCHOOLS[k] };
     }
   }
 
-  // Fallback - estimate based on length heuristic
-  const isLikelyPrivate = raw.length > 14 && !raw.toLowerCase().includes('university of') && !raw.toLowerCase().includes('state');
-  return {
-    name: titleCase(raw.trim()),
-    fullName: raw.trim(),
-    tuition: isLikelyPrivate ? 52000 : 16000,
-    cityMod: 1.0,
-    type: isLikelyPrivate ? 'Private (est.)' : 'Public (est.)',
-    state: '-',
-    city: 'varies',
-    estimated: true,
-  };
+  return null;
 }
 
-function titleCase(str) {
-  return str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+const MAJOR_SALARIES = {
+  cs:         { label: 'CS/Engineering',        startSalary: 88000 },
+  business:   { label: 'Business/Finance',       startSalary: 58000 },
+  nursing:    { label: 'Nursing/Healthcare',     startSalary: 62000 },
+  education:  { label: 'Education',              startSalary: 41000 },
+  psychology: { label: 'Psychology',             startSalary: 40000 },
+  arts:       { label: 'Arts/Humanities',        startSalary: 38000 },
+  bio:        { label: 'Biology/Pre-Med',        startSalary: 42000 },
+  law:        { label: 'Pre-Law',                startSalary: 52000 },
+  math:       { label: 'Mathematics/Stats',      startSalary: 72000 },
+  enviro:     { label: 'Environmental Science',  startSalary: 44000 },
+};
+
+const AID_DISCOUNTS = {
+  low:  0.00,
+  mid:  0.10,
+  high: 0.30,
+};
+
+const FEDERAL_RATE   = 0.0653;
+const LOAN_YEARS     = 10;
+const LOAN_MONTHS    = LOAN_YEARS * 12;
+const COST_OF_LIVING = 2200;
+const TAXES_PCT      = 0.24;
+const STUDY_YEARS    = 4;
+
+function calcMonthlyPayment(principal, rate, months) {
+  if (principal <= 0) return 0;
+  const r = rate / 12;
+  if (r === 0) return principal / months;
+  return principal * r * Math.pow(1 + r, months) / (Math.pow(1 + r, months) - 1);
 }
 
-async function resolveSchool(raw) {
-  const key = raw.trim().toLowerCase();
-  if (SCHOOLS[key]) return { ...SCHOOLS[key] };
+async function calcSchool(rawName, majorKey, aidLevel) {
+  const major = MAJOR_SALARIES[majorKey] || MAJOR_SALARIES['business'];
+  const aidDiscount = AID_DISCOUNTS[aidLevel] ?? 0.10;
 
-  if (typeof resolveScorecardSchool === 'function') {
-    const liveSchool = await resolveScorecardSchool(raw);
-    if (liveSchool) return liveSchool;
+  // Try live API first
+  let schoolData = null;
+  if (typeof fetchScorecardSchoolData === 'function') {
+    try { schoolData = await fetchScorecardSchoolData(rawName); } catch {}
   }
 
-  return lookupSchool(raw);
-}
+  // Fall back to local data
+  if (!schoolData || (!schoolData.tuition && !schoolData.netPrice)) {
+    const local = lookupSchool(rawName);
+    if (local) {
+      schoolData = {
+        name:     local.fullName || local.name,
+        city:     local.city || '',
+        state:    local.state || '',
+        type:     local.type || 'Private',
+        tuition:  local.tuition,
+        netPrice: null,
+        medianDebt: null,
+        medianEarnings: null,
+        source: 'Local data',
+        domain: local.domain || null,
+        estimated: false,
+      };
+    }
+  }
 
-async function calcSchool(schoolRaw, majorKey, aidLevel) {
-  const school = await resolveSchool(schoolRaw);
-  const major = MAJORS[majorKey];
-  const aidRate = AID_RATES[aidLevel];
+  // Generic fallback
+  if (!schoolData) {
+    schoolData = {
+      name:      rawName,
+      city:      '',
+      state:     '',
+      type:      'Private',
+      tuition:   45000,
+      netPrice:  null,
+      source:    'Estimated',
+      estimated: true,
+      domain:    null,
+    };
+  }
 
-  // Cost calculations
-  const grantAid = Math.round(school.tuition * aidRate);
-  const netTuition = school.tuition - grantAid;
-  const annualLiving = Math.round(LIVING_BASE * school.cityMod);
-  const annualTotal = netTuition + annualLiving;
-  const totalDebt = annualTotal * 4;  // 4-year degree
+  // Determine city cost modifier
+  const cityKey = (schoolData.city || '').toLowerCase();
+  const stateKey = (schoolData.state || '').toUpperCase();
+  const cityMod = getCityMod(cityKey, stateKey);
 
-  // Loan repayment - standard federal 10-year plan, 5.5% avg rate
-  const ANNUAL_RATE = 0.055;
-  const MONTHLY_RATE = ANNUAL_RATE / 12;
-  const N_PAYMENTS = 120; // 10 years
-  const monthlyPayment = totalDebt > 0
-    ? Math.round(totalDebt * MONTHLY_RATE / (1 - Math.pow(1 + MONTHLY_RATE, -N_PAYMENTS)))
-    : 0;
+  // Determine tuition
+  let baseTuition = schoolData.netPrice || schoolData.tuition || 45000;
+  if (!schoolData.netPrice && schoolData.tuition) {
+    baseTuition = schoolData.tuition;
+  }
 
-  // Income calculations
-  const annualGrossSalary = major.salary;
-  const taxRate = annualGrossSalary > 55000 ? 0.28 : 0.22; // rough effective rate
-  const annualTakehome = Math.round(annualGrossSalary * (1 - taxRate));
-  const monthlyTakehome = Math.round(annualTakehome / 12);
+  // Apply aid discount
+  const netTuition = Math.round(baseTuition * (1 - aidDiscount));
 
-  // Payment burden
-  const paymentPct = Math.round((monthlyPayment / monthlyTakehome) * 100);
+  // Total debt for 4 years
+  const totalDebt = netTuition * STUDY_YEARS;
 
-  // First-job budget snapshot
-  const rent = Math.round(monthlyTakehome * 0.30);
-  const food = Math.round(monthlyTakehome * 0.12);
-  const transport = Math.round(monthlyTakehome * 0.10);
-  const essentials = rent + food + transport;
-  const breathingRoom = monthlyTakehome - essentials - monthlyPayment;
-  const freedomPct = Math.round((Math.max(0, breathingRoom) / monthlyTakehome) * 100);
+  // Monthly loan payment
+  const monthlyPayment = Math.round(calcMonthlyPayment(totalDebt, FEDERAL_RATE, LOAN_MONTHS));
+  const totalPaid      = monthlyPayment * LOAN_MONTHS;
+  const totalInterest  = Math.round(totalPaid - totalDebt);
 
-  // Total interest paid over 10 years
-  const totalPaid = monthlyPayment * N_PAYMENTS;
-  const totalInterest = Math.round(totalPaid - totalDebt);
+  // Salary & take-home
+  const grossMonthly   = Math.round(major.startSalary / 12);
+  const netMonthly     = Math.round(grossMonthly * (1 - TAXES_PCT));
+  const paymentPct     = Math.round((monthlyPayment / netMonthly) * 100);
 
-  // Financial health score (0-100)
-  let score = 100;
-  // Primary driver: debt-to-income ratio (monthly payment as % of take-home)
-  if (paymentPct >= 35)      score -= 60;
-  else if (paymentPct >= 28) score -= 48;
-  else if (paymentPct >= 22) score -= 36;
-  else if (paymentPct >= 16) score -= 22;
-  else if (paymentPct >= 10) score -= 10;
-  else if (paymentPct >= 5)  score -= 3;
+  // Age-25 snapshot
+  const adjustedLiving = Math.round(COST_OF_LIVING * cityMod);
+  const breathingRoom  = netMonthly - monthlyPayment - adjustedLiving;
+  const freedomPct     = Math.max(0, Math.round((breathingRoom / netMonthly) * 100));
 
-  // Secondary: absolute debt load
-  if (totalDebt > 180000) score -= 18;
-  else if (totalDebt > 120000) score -= 12;
-  else if (totalDebt > 80000) score -= 7;
-  else if (totalDebt > 40000) score -= 3;
+  // Timeline (years 22–30)
+  const timeline = [];
+  let cumulativeSaved = 0;
+  for (let yr = 0; yr <= 8; yr++) {
+    const age = 22 + yr;
+    const stillInRepayment = yr < LOAN_YEARS;
+    const payment = stillInRepayment ? monthlyPayment * 12 : 0;
+    const annualNet = netMonthly * 12;
+    const living = adjustedLiving * 12;
+    const saved  = Math.max(0, annualNet - payment - living);
+    cumulativeSaved += saved;
+    timeline.push({ age, stillInRepayment, payment, annualNet, living, saved, cumulativeSaved });
+  }
 
-  // Bonus for public schools (generally more transparent, better value)
-  if (school.type === 'Public') score += 5;
-
-  score = Math.max(5, Math.min(100, score));
-
-  // Life timeline - what can you afford each year?
-  const timeline = buildTimeline(monthlyPayment, monthlyTakehome, paymentPct);
+  // Score 0–100
+  const score = computeScore(paymentPct, breathingRoom, netTuition, major.startSalary);
 
   return {
-    school,
+    school: {
+      name:      schoolData.name || rawName,
+      fullName:  schoolData.name || rawName,
+      type:      schoolData.type || 'Private',
+      city:      schoolData.city || '',
+      state:     schoolData.state || '',
+      source:    schoolData.source || '',
+      estimated: schoolData.estimated || false,
+      domain:    schoolData.domain || null,
+    },
     major,
-    grantAid,
-    netTuition: Math.round(netTuition),
-    annualLiving,
-    annualTotal: Math.round(annualTotal),
-    totalDebt: Math.round(totalDebt),
+    netTuition,
+    totalDebt,
     monthlyPayment,
-    monthlyTakehome,
-    annualTakehome,
-    annualGrossSalary,
+    totalPaid,
+    totalInterest,
+    grossMonthly,
+    netMonthly,
     paymentPct,
-    rent,
-    food,
-    transport,
-    essentials,
     breathingRoom,
     freedomPct,
-    totalInterest,
-    totalPaid: Math.round(totalPaid),
-    score,
     timeline,
+    score,
   };
 }
 
-function buildTimeline(monthlyPayment, monthlyTakehome, paymentPct) {
-  // Rough monthly budget breakdown post-graduation
-  const rent = Math.round(monthlyTakehome * 0.30);
-  const food = Math.round(monthlyTakehome * 0.12);
-  const transport = Math.round(monthlyTakehome * 0.10);
-  const leftoverBeforeLoans = monthlyTakehome - rent - food - transport;
-  const leftoverAfterLoans = leftoverBeforeLoans - monthlyPayment;
-  const canSave = leftoverAfterLoans > 200;
-  const canInvest = leftoverAfterLoans > 600;
-  const canTravel = leftoverAfterLoans > 400;
-  const stressed = paymentPct > 22;
-  const crushing = paymentPct > 30;
+function getCityMod(city, state) {
+  const NYC_AREAS    = ['new york', 'brooklyn', 'queens', 'bronx', 'manhattan', 'staten island', 'jersey city', 'hoboken'];
+  const BAY_AREAS    = ['san francisco', 'san jose', 'oakland', 'berkeley', 'palo alto', 'mountain view', 'sunnyvale', 'santa clara', 'cupertino'];
+  const LA_AREAS     = ['los angeles', 'santa monica', 'west hollywood', 'beverly hills', 'culver city', 'long beach', 'pasadena', 'glendale'];
+  const BOSTON_AREAS = ['boston', 'cambridge', 'somerville', 'brookline', 'newton', 'medford', 'malden', 'quincy'];
+  const DC_AREAS     = ['washington', 'arlington', 'alexandria', 'bethesda', 'silver spring', 'college park'];
+  const SEATTLE_AREAS= ['seattle', 'bellevue', 'redmond', 'kirkland', 'renton', 'tacoma'];
+  const MIAMI_AREAS  = ['miami', 'coral gables', 'miami beach', 'ft lauderdale', 'fort lauderdale', 'boca raton'];
+  const CHICAGO_AREAS= ['chicago', 'evanston', 'oak park', 'naperville'];
 
-  return [
-    {
-      age: 22,
-      year: "Year 1",
-      label: crushing ? "Survival mode" : stressed ? "Tight budget" : "Getting started",
-      color: crushing ? "red" : stressed ? "amber" : "green",
-      note: crushing
-        ? `$${leftoverAfterLoans < 0 ? '0' : leftoverAfterLoans.toLocaleString()} left after essentials + loans`
-        : `$${Math.max(0, leftoverAfterLoans).toLocaleString()}/mo breathing room`,
-    },
-    {
-      age: 23,
-      year: "Year 2",
-      label: crushing ? "No safety net" : stressed ? "Scraping by" : "Building savings",
-      color: crushing ? "red" : stressed ? "amber" : "green",
-      note: crushing ? "Can't save. Emergency fund: $0" : canSave ? "Starting emergency fund" : "Saving slowly",
-    },
-    {
-      age: 24,
-      year: "Year 3",
-      label: crushing ? "Career pressure" : stressed ? "Slow progress" : "Getting stable",
-      color: crushing ? "red" : stressed ? "amber" : "green",
-      note: crushing ? "Must chase salary urgently" : stressed ? "Debt still dominant" : "Debt manageable",
-    },
-    {
-      age: 25,
-      year: "Year 4",
-      label: crushing ? "Major sacrifice" : stressed ? "Trade-offs" : "Investing begins",
-      color: crushing ? "red" : stressed ? "amber" : "green",
-      note: crushing ? "No home, no investments" : canInvest ? "Starting 401k / Roth IRA" : "Saving, not investing yet",
-    },
-    {
-      age: 26,
-      year: "Year 5",
-      label: crushing ? "Still locked in" : stressed ? "Light ahead" : "Growing wealth",
-      color: crushing ? "red" : stressed ? "amber" : "green",
-      note: crushing ? "5 years left of payments" : stressed ? "Halfway through debt" : "Net worth turning positive",
-    },
-    {
-      age: 27,
-      year: "Year 6",
-      label: crushing ? "Halfway & hurting" : stressed ? "Progressing" : "Real freedom",
-      color: crushing ? "red" : stressed ? "amber" : "green",
-      note: crushing ? "Still $" + Math.round(monthlyPayment * 12 * 4).toLocaleString() + " of debt left" : canTravel ? "Can travel + invest" : "On track",
-    },
-    {
-      age: 28,
-      year: "Year 7",
-      label: crushing ? "Side hustle needed" : stressed ? "Getting easier" : "Milestone years",
-      color: crushing ? "red" : stressed ? "amber" : "green",
-      note: crushing ? "Must earn more to survive" : "Flexibility increasing",
-    },
-    {
-      age: 30,
-      year: "Year 9",
-      label: crushing ? "Near the end" : stressed ? "Almost there" : "Debt-free ahead",
-      color: crushing ? "amber" : "green",
-      note: "2 years of payments left",
-    },
-    {
-      age: 32,
-      year: "Year 11",
-      label: "Debt-free!",
-      color: "green",
-      note: crushing
-        ? `$${(monthlyPayment * 120).toLocaleString()} total paid over 10 years`
-        : `$${(monthlyPayment * 120).toLocaleString()} paid - now fully yours`,
-    },
-  ];
+  if (NYC_AREAS.some(a => city.includes(a))) return 1.45;
+  if (BAY_AREAS.some(a => city.includes(a))) return 1.50;
+  if (LA_AREAS.some(a => city.includes(a)))  return 1.35;
+  if (BOSTON_AREAS.some(a => city.includes(a))) return 1.38;
+  if (DC_AREAS.some(a => city.includes(a)))  return 1.32;
+  if (SEATTLE_AREAS.some(a => city.includes(a))) return 1.30;
+  if (MIAMI_AREAS.some(a => city.includes(a)))   return 1.20;
+  if (CHICAGO_AREAS.some(a => city.includes(a))) return 1.18;
+
+  // State-based fallback
+  const highCostStates = new Set(['NY','CA','MA','DC','CT','NJ','HI','WA']);
+  const lowCostStates  = new Set(['MS','AR','WV','KY','IN','IA','NE','KS','OK','SD','ND','MT','ID','WY']);
+  if (highCostStates.has(state)) return 1.25;
+  if (lowCostStates.has(state))  return 0.82;
+  return 1.00;
+}
+
+function computeScore(paymentPct, breathingRoom, netTuition, startSalary) {
+  let score = 100;
+  // Penalize for high payment burden
+  if (paymentPct > 30) score -= 40;
+  else if (paymentPct > 25) score -= 30;
+  else if (paymentPct > 20) score -= 20;
+  else if (paymentPct > 15) score -= 10;
+  else if (paymentPct > 10) score -= 4;
+  // Penalize for negative breathing room
+  if (breathingRoom < 0)    score -= 25;
+  else if (breathingRoom < 200) score -= 15;
+  else if (breathingRoom < 500) score -= 8;
+  // Penalize for very high debt relative to salary
+  const debtToSalary = (netTuition * 4) / startSalary;
+  if (debtToSalary > 2.5) score -= 15;
+  else if (debtToSalary > 1.5) score -= 8;
+  else if (debtToSalary > 1.0) score -= 4;
+  return Math.max(5, Math.min(100, Math.round(score)));
 }
 
 function getScoreColor(score) {
-  if (score >= 68) return 'green';
-  if (score >= 42) return 'amber';
+  if (score >= 70) return 'green';
+  if (score >= 45) return 'amber';
   return 'red';
 }
 
 function getBarColor(pct) {
-  if (pct <= 10) return '#2f8f5b';
-  if (pct <= 16) return '#69a979';
-  if (pct <= 22) return '#b7791f';
-  if (pct <= 28) return '#c58b3a';
-  return '#c0564a';
-}
-
-function getBarHex(color) {
-  const map = { green: '#2f8f5b', amber: '#b7791f', red: '#c0564a' };
-  return map[color] || '#9b9896';
+  if (pct <= 12) return '#2e7d6e';
+  if (pct <= 20) return '#b7862a';
+  return '#c05a48';
 }
 
 function formatDollars(n) {
-  return '$' + Math.round(n).toLocaleString();
-}
-
-function buildVerdict(results) {
-  const sorted = [...results].sort((a, b) => b.score - a.score);
-  const best = sorted[0];
-  const worst = sorted[sorted.length - 1];
-  const mid = sorted[1];
-  const majorLabel = results[0].major.label;
-  const salary = results[0].annualGrossSalary;
-
-  const debtGap = worst.totalDebt - best.totalDebt;
-  const paymentGap = worst.monthlyPayment - best.monthlyPayment;
-
-  let headline = '';
-  let body = '';
-
-  if (best.paymentPct <= 10) {
-    headline = `${best.school.name} is genuinely a great financial decision.`;
-  } else if (best.paymentPct <= 16) {
-    headline = `${best.school.name} is your safest bet - manageable, not ideal.`;
-  } else if (best.paymentPct <= 22) {
-    headline = `None of your options are cheap - but ${best.school.name} is the least painful.`;
-  } else {
-    headline = `All three schools carry real financial risk for a ${majorLabel} grad.`;
-  }
-
-  body += `You're planning to study <strong>${majorLabel}</strong>, a field that pays a median starting salary of around <strong>${formatDollars(salary)}/year</strong> - that's roughly <strong>${formatDollars(results[0].monthlyTakehome)}/month take-home</strong> after taxes. `;
-
-  body += `<strong class="highlight-green">${best.school.name}</strong> costs you <strong>${formatDollars(best.monthlyPayment)}/month</strong> in loan payments - <span class="highlight-${getScoreColor(best.score)}">${best.paymentPct}% of your paycheck</span> - for 10 straight years. `;
-
-  if (worst !== best) {
-    if (worst.paymentPct > 28) {
-      body += `<strong class="highlight-red">${worst.school.name}</strong>, by contrast, would take <strong>${formatDollars(worst.monthlyPayment)}/month</strong> - that's <span class="highlight-red">${worst.paymentPct}% of every paycheck</span> you earn for a decade. That's not just tight; that changes the trajectory of your 20s. `;
-    } else {
-      body += `<strong>${worst.school.name}</strong> would cost <strong>${formatDollars(worst.monthlyPayment)}/month</strong> - <span class="highlight-amber">${worst.paymentPct}% of your paycheck</span> - which is noticeable but not disqualifying if you're intentional. `;
-    }
-  }
-
-  if (debtGap > 10000) {
-    body += `The raw debt gap between your cheapest and most expensive option is <strong>${formatDollars(debtGap)}</strong>. That's money that could be a down payment on a home, a year of travel, or years of compound interest in a retirement account. `;
-  }
-
-  if (best.paymentPct > 22) {
-    body += `<strong>Honest advice:</strong> consider whether there are in-state public schools or schools with stronger merit aid programs for your major. The prestige premium often isn't reflected in salary for ${majorLabel} grads.`;
-  } else if (best.paymentPct <= 10) {
-    body += `<strong>You're in a strong position.</strong> ${best.school.name} gives you real financial flexibility - you can save, invest, and build wealth in your 20s while your peers are counting pennies.`;
-  } else {
-    body += `<strong>Bottom line:</strong> go in with eyes open. Run the net price calculator at each school's financial aid office - actual aid packages can shift these numbers significantly.`;
-  }
-
-  return { headline, body };
+  if (!n && n !== 0) return '—';
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return '$' + Math.round(n).toLocaleString();
+  return '$' + Math.round(n);
 }
