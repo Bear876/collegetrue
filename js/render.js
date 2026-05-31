@@ -2,7 +2,6 @@
 // CollegeTrue — Render Engine (Harbor Haze)
 // ============================================
 
-// Harbor Haze color constants for JS-rendered elements
 const HH = {
   green:     '#2e7d6e',
   greenDim:  'rgba(46,125,110,0.13)',
@@ -15,6 +14,66 @@ const HH = {
   redBdr:    'rgba(192,90,72,0.38)',
   ink3:      '#8fa5b4',
 };
+
+// ---- Logo helpers ----
+
+function getSchoolLogoUrl(school) {
+  // Check known domain map first
+  const key = (school.name || '').toLowerCase().trim();
+  const domain = school.domain || SCHOOL_DOMAINS[key] || guessDomain(key, school.state);
+  if (!domain) return null;
+  return `https://logo.clearbit.com/${domain}`;
+}
+
+function guessDomain(name, state) {
+  // Try a few common patterns
+  const clean = name
+    .replace(/\buniversity\b/gi, '')
+    .replace(/\bcollege\b/gi, '')
+    .replace(/\bstate\b/gi, '')
+    .replace(/\bof\b/gi, '')
+    .replace(/\bthe\b/gi, '')
+    .replace(/[^a-z0-9\s]/gi, '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (clean.length === 0) return null;
+  const slug = clean.slice(0, 2).join('').toLowerCase();
+  if (slug.length < 2) return null;
+  return `${slug}.edu`;
+}
+
+function renderLogoOrInitials(school) {
+  const logoUrl = getSchoolLogoUrl(school);
+  const initials = (school.name || '??')
+    .split(/\s+/)
+    .filter(w => /^[A-Z]/i.test(w))
+    .slice(0, 2)
+    .map(w => w[0].toUpperCase())
+    .join('');
+
+  if (logoUrl) {
+    return `
+      <div class="school-logo-wrap">
+        <img
+          class="school-logo"
+          src="${logoUrl}"
+          alt="${school.name} logo"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        />
+        <div class="school-logo-fallback" style="display:none">${initials}</div>
+      </div>
+    `;
+  }
+  return `
+    <div class="school-logo-wrap">
+      <div class="school-logo-fallback">${initials}</div>
+    </div>
+  `;
+}
+
+// ---- Score Cards ----
 
 function renderScoreCards(results) {
   const container = document.getElementById('score-cards');
@@ -33,8 +92,8 @@ function renderScoreCards(results) {
     const barHex = scoreColor === 'green' ? HH.green : scoreColor === 'amber' ? HH.amber : HH.red;
 
     const card = document.createElement('div');
-    card.className = `score-card ${cardClass} fade-in-up`;
-    card.style.animationDelay = `${i * 0.1}s`;
+    card.className = `score-card ${cardClass} reveal-up`;
+    card.style.transitionDelay = `${i * 0.12}s`;
 
     card.innerHTML = `
       <div class="score-card-verdict">${verdictText}</div>
@@ -42,9 +101,12 @@ function renderScoreCards(results) {
         <div class="score-card-name">${r.school.name}</div>
         <div class="score-card-type">${r.school.type} · ${r.school.city || r.school.state}${r.school.source ? ` · ${r.school.source}` : ''}</div>
       </div>
-      <div class="score-display">
-        <div class="score-number ${scoreColor}">${r.score}</div>
-        <div class="score-suffix">/ 100<br/>financial<br/>health</div>
+      <div class="score-display-row">
+        <div class="score-display">
+          <div class="score-number ${scoreColor}">${r.score}</div>
+          <div class="score-suffix">/ 100<br/>financial<br/>health</div>
+        </div>
+        ${renderLogoOrInitials(r.school)}
       </div>
       <div class="score-bar-wrap">
         <div class="score-bar-fill" style="width: 0%; background: ${barHex};" data-target="${r.score}%"></div>
@@ -82,7 +144,9 @@ function renderScoreCards(results) {
       document.querySelectorAll('.score-bar-fill').forEach(bar => {
         bar.style.width = bar.dataset.target;
       });
-    }, 120);
+      // Trigger reveal for newly added cards
+      initReveal();
+    }, 80);
   });
 }
 
@@ -100,7 +164,7 @@ function renderBurdenBars(results) {
     const thresh25  = Math.max(8, Math.min(92, maxPct > 0 ? Math.round((25 / maxPct) * 100) : 80));
 
     const row = document.createElement('div');
-    row.className = 'burden-row';
+    row.className = 'burden-row reveal-up';
     row.innerHTML = `
       <div class="burden-row-header">
         <span class="burden-school-name">${r.school.name}</span>
@@ -125,6 +189,7 @@ function renderBurdenBars(results) {
       document.querySelectorAll('.burden-fill').forEach(bar => {
         bar.style.width = bar.dataset.target;
       });
+      initReveal();
     }, 220);
   });
 }
@@ -139,7 +204,7 @@ function renderSnapshot(results) {
   const roomGap = best.breathingRoom - worst.breathingRoom;
 
   const lead = document.createElement('div');
-  lead.className = 'snapshot-lead';
+  lead.className = 'snapshot-lead reveal-up';
   lead.innerHTML = `
     <div>
       <span class="snapshot-k">best monthly breathing room</span>
@@ -155,120 +220,113 @@ function renderSnapshot(results) {
   const grid = document.createElement('div');
   grid.className = 'snapshot-grid';
 
-  results.forEach(r => {
+  results.forEach((r, i) => {
     const mood  = r.breathingRoom < 0 ? 'red' : r.breathingRoom < 500 ? 'amber' : 'green';
     const width = Math.max(4, Math.min(100, r.freedomPct));
     const card  = document.createElement('div');
-    card.className = `snapshot-card ${mood}`;
+    card.className = `snapshot-card ${mood} reveal-up`;
+    card.style.transitionDelay = `${i * 0.1}s`;
     card.innerHTML = `
       <div class="snapshot-card-head">
         <span>${r.school.name}</span>
         <strong>${r.breathingRoom < 0 ? '-' : ''}${formatDollars(Math.abs(r.breathingRoom))}/mo</strong>
       </div>
-      <div class="snapshot-track">
-        <div class="snapshot-fill" style="width:${width}%"></div>
+      <div class="snapshot-bar-wrap">
+        <div class="snapshot-bar-fill" style="width: ${width}%;"></div>
       </div>
-      <div class="snapshot-breakdown mono">
-        <span>${formatDollars(r.monthlyTakehome)} take-home</span>
-        <span>- ${formatDollars(r.essentials)} basics (rent, food, transport)</span>
-        <span>- ${formatDollars(r.monthlyPayment)} loan payment</span>
+      <div class="snapshot-detail">
+        <span class="mono">take-home: ${formatDollars(r.netMonthly)}/mo</span>
+        <span class="mono">loan: ${formatDollars(r.monthlyPayment)}/mo</span>
+        <span class="mono">living: ~${formatDollars(r.breathingRoom < 0 ? r.netMonthly - r.monthlyPayment : r.netMonthly - r.monthlyPayment - r.breathingRoom)}/mo</span>
       </div>
-      <p>${r.breathingRoom < 0
-        ? 'Budget underwater before savings or emergencies.'
-        : r.breathingRoom < 500
-        ? 'You can make it work — but small emergencies hurt.'
-        : 'Real flexibility. You can save, invest, and breathe.'}</p>
+      <div class="snapshot-verdict ${mood}">
+        ${r.breathingRoom < 0 ? '⚠ Budget shortfall' : r.breathingRoom < 300 ? 'Tight but possible' : r.breathingRoom < 800 ? 'Manageable' : 'Comfortable'}
+      </div>
     `;
     grid.appendChild(card);
   });
-
   container.appendChild(grid);
+  requestAnimationFrame(() => { setTimeout(() => initReveal(), 80); });
 }
 
 function renderTimeline(results) {
   const container = document.getElementById('timeline-section');
   container.innerHTML = '';
 
-  const YEARS = [
-    { key: 0, label: 'Age 22' },
-    { key: 1, label: 'Age 23' },
-    { key: 2, label: 'Age 24' },
-    { key: 3, label: 'Age 25' },
-    { key: 4, label: 'Age 26' },
-    { key: 5, label: 'Age 27' },
-    { key: 6, label: 'Age 28' },
-    { key: 7, label: 'Age 30' },
-    { key: 8, label: 'Age 32' },
-  ];
+  const maxCumulative = Math.max(...results.flatMap(r => r.timeline.map(t => t.cumulativeSaved)));
 
-  const numCols    = YEARS.length;
-  const colTemplate = `100px repeat(${numCols}, 1fr)`;
-  const grid       = document.createElement('div');
-  grid.className   = 'timeline-grid';
+  results.forEach((r, ri) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'timeline-school reveal-up';
+    wrap.style.transitionDelay = `${ri * 0.12}s`;
+    wrap.innerHTML = `<div class="timeline-school-label">${r.school.name}</div>`;
 
-  const headerRow  = document.createElement('div');
-  headerRow.className = 'timeline-header-row';
-  headerRow.style.cssText = `grid-template-columns: ${colTemplate}; display: grid; gap: 3px;`;
-  headerRow.innerHTML = `<div></div>` + YEARS.map(y => `<div class="timeline-header-cell">${y.label}</div>`).join('');
-  grid.appendChild(headerRow);
+    const track = document.createElement('div');
+    track.className = 'timeline-track';
 
-  results.forEach(r => {
-    const row = document.createElement('div');
-    row.className = 'timeline-school-row';
-    row.style.cssText = `grid-template-columns: ${colTemplate}; display: grid; gap: 3px; margin-bottom: 5px;`;
-
-    const labelCell = document.createElement('div');
-    labelCell.className = 'timeline-school-label';
-    labelCell.textContent = r.school.name;
-    row.appendChild(labelCell);
-
-    r.timeline.forEach(point => {
-      const cell = document.createElement('div');
-      cell.className = 'timeline-cell';
-      const bg = point.color === 'green' ? HH.greenDim
-               : point.color === 'amber' ? HH.amberDim
-               : HH.redDim;
-      const tc = point.color === 'green' ? HH.green
-               : point.color === 'amber' ? HH.amber
-               : HH.red;
-      cell.style.background = bg;
-      cell.style.color = tc;
-      cell.title = point.note || '';
-      cell.textContent = point.label;
-      row.appendChild(cell);
+    r.timeline.forEach(t => {
+      const barH = maxCumulative > 0 ? Math.round((t.cumulativeSaved / maxCumulative) * 80) : 0;
+      const col  = document.createElement('div');
+      col.className = `timeline-col${t.stillInRepayment ? ' repaying' : ' free'}`;
+      col.innerHTML = `
+        <div class="timeline-bar" style="height: ${barH}px;" title="Age ${t.age}: $${Math.round(t.cumulativeSaved).toLocaleString()} saved"></div>
+        <div class="timeline-age mono">${t.age}</div>
+      `;
+      track.appendChild(col);
     });
 
-    grid.appendChild(row);
+    wrap.appendChild(track);
+    container.appendChild(wrap);
   });
+  requestAnimationFrame(() => { setTimeout(() => initReveal(), 80); });
+}
 
-  container.appendChild(grid);
-
-  const legend = document.createElement('div');
-  legend.className = 'timeline-legend';
-  legend.innerHTML = `
-    <div class="timeline-legend-item"><div class="timeline-legend-dot" style="background:${HH.greenDim}; border:1px solid ${HH.green};"></div>Healthy finances</div>
-    <div class="timeline-legend-item"><div class="timeline-legend-dot" style="background:${HH.amberDim}; border:1px solid ${HH.amber};"></div>Some pressure</div>
-    <div class="timeline-legend-item"><div class="timeline-legend-dot" style="background:${HH.redDim}; border:1px solid ${HH.red};"></div>Financial strain</div>
-    <div class="timeline-legend-item" style="margin-left:auto; font-size:0.52rem; font-style:italic;">Hover cells for detail</div>
-  `;
-  container.appendChild(legend);
+function renderResultsTitle(results) {
+  const names = results.map(r => r.school.name);
+  document.getElementById('results-title').textContent =
+    names.length === 3 ? `${names[0]} vs. ${names[1]} vs. ${names[2]}` : 'The Numbers Don\'t Lie';
 }
 
 function renderVerdict(results) {
   const container = document.getElementById('verdict-section');
-  const { headline, body } = buildVerdict(results);
-  container.innerHTML = `
-    <span class="verdict-tag">— the honest verdict</span>
-    <h3 class="verdict-headline">${headline}</h3>
-    <div class="verdict-body">${body}</div>
-  `;
-}
+  container.innerHTML = '';
 
-function renderResultsTitle(results) {
-  const sorted = [...results].sort((a, b) => b.score - a.score);
-  const best = sorted[0];
-  document.getElementById('results-title').textContent =
-    best.paymentPct <= 12  ? `${best.school.name} wins — by a lot.`
-    : best.paymentPct <= 22 ? 'The Numbers Are In.'
-    : 'You Need to See This.';
+  const sorted   = [...results].sort((a, b) => b.score - a.score);
+  const winner   = sorted[0];
+  const runnerUp = sorted[1];
+  const worst    = sorted[sorted.length - 1];
+
+  const monthlySaved = winner.monthlyPayment < worst.monthlyPayment
+    ? worst.monthlyPayment - winner.monthlyPayment : 0;
+
+  const div = document.createElement('div');
+  div.className = 'verdict-inner reveal-up';
+  div.innerHTML = `
+    <div class="verdict-tag mono">CollegeTrue verdict</div>
+    <h3 class="verdict-headline">
+      ${winner.school.name} is your <em>smartest financial bet</em>.
+    </h3>
+    <p class="verdict-body">
+      Choosing ${winner.school.name} over ${worst.school.name} saves you
+      <strong>${formatDollars(monthlySaved)}/month</strong> in loan payments —
+      that's ${formatDollars(monthlySaved * 12)}/year you keep in your pocket.
+      Over the 10-year repayment window, the gap is
+      <strong>${formatDollars(monthlySaved * 120)}</strong>.
+    </p>
+    <div class="verdict-scores">
+      ${sorted.map(r => `
+        <div class="verdict-score-item">
+          <span>${r.school.name}</span>
+          <span class="verdict-score-num ${getScoreColor(r.score)}">${r.score}/100</span>
+        </div>
+      `).join('')}
+    </div>
+    <p class="verdict-caveat mono">
+      Scores are based on loan burden as % of median starting salary for your major,
+      monthly breathing room, and debt-to-salary ratio. They're estimates — always
+      verify with each school's Net Price Calculator.
+    </p>
+  `;
+  container.appendChild(div);
+  requestAnimationFrame(() => { setTimeout(() => initReveal(), 80); });
 }
