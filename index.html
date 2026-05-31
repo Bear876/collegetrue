@@ -1,267 +1,273 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CollegeTrue — Financial Reality Check</title>
-  <meta name="description" content="See the full financial picture before you choose a college. Real costs, real loan payments, real impact on your life at 25." />
-  <meta property="og:title" content="CollegeTrue — Financial Reality Check" />
-  <meta property="og:description" content="Compare 3 colleges and see exactly what your bank account looks like at 27." />
-  <meta property="og:type" content="website" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CollegeTrue: A Financial Reality Check</title>
+    <meta name="description" content="See the full financial picture before you choose a college. Real costs, real loan payments, real impact on your life at 25." />
+    <meta property="og:title" content="CollegeTrue — Financial Reality Check" />
+    <meta property="og:description" content="Compare 3 colleges and see exactly what your bank account looks like at 27." />
+    <meta property="og:type" content="website" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
 
-  <!-- HERO / LANDING -->
-  <section id="hero" class="hero">
-    <div class="hero-bg-lines"></div>
-    <div class="hero-watermark">$$$</div>
+    <!-- HERO / LANDING -->
+    <section id="hero" class="hero">
+      <div class="hero-bg-lines"></div>
+      <div class="hero-watermark">$$$</div>
 
-    <nav class="nav">
-      <div class="nav-logo">College<span class="accent">True</span></div>
-      <div class="nav-right">
-        <div class="nav-pill">6,000+ US colleges · Live Scorecard lookup</div>
-        <button class="nav-cta" onclick="scrollToForm()">Check my schools →</button>
-      </div>
-    </nav>
-
-    <div class="hero-main">
-      <div class="hero-content">
-        <div class="hero-eyebrow">
-          <span class="hero-eyebrow-tag mono">Financial Literacy Tool</span>
-          <span class="hero-eyebrow-dot"></span>
-          <span class="hero-eyebrow-tag mono">Free · No login</span>
+      <nav class="nav">
+        <div class="nav-logo">College<span class="accent">True</span></div>
+        <div class="nav-right">
+          <div class="nav-pill">6,000+ US colleges · Live Scorecard lookup</div>
+          <button class="nav-cta" onclick="scrollToForm()">Check my schools →</button>
         </div>
-        <h1 class="hero-headline">
-          Pick a college<br/>
-          with your <em>future paycheck</em>.
-        </h1>
-        <p class="hero-sub">
-          Compare any 3 US colleges, your major, and your aid situation.
-          CollegeTrue turns tuition into a monthly payment, an age-25 budget snapshot,
-          and one brutally honest call.
-        </p>
-        <button class="cta-btn" onclick="scrollToForm()">
-          Run my reality check
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </button>
-        <div class="hero-stats">
-          <div class="hero-stat">
-            <span class="hero-stat-num">40%</span>
-            <span class="hero-stat-label mono">of students feel prepared to figure out full cost</span>
+      </nav>
+
+      <div class="hero-main">
+        <div class="hero-content reveal-hero">
+          <div class="hero-eyebrow">
+            <span class="hero-eyebrow-tag mono">Financial Literacy Tool</span>
+            <span class="hero-eyebrow-dot"></span>
+            <span class="hero-eyebrow-tag mono">Free · No login</span>
           </div>
-          <div class="hero-stat-div"></div>
-          <div class="hero-stat">
-            <span class="hero-stat-num">38%</span>
-            <span class="hero-stat-label mono">of dropouts cite financial challenges as primary reason</span>
-          </div>
-          <div class="hero-stat-div"></div>
-          <div class="hero-stat">
-            <span class="hero-stat-num">10yr</span>
-            <span class="hero-stat-label mono">standard federal loan repayment period</span>
-          </div>
-        </div>
-      </div>
-
-      <aside class="hero-demo" aria-label="Example CollegeTrue result">
-        <div class="demo-topline">Example — CS major, mid income</div>
-        <div class="demo-school win">
-          <span>Ohio State</span>
-          <strong>$246/mo</strong>
-          <small>6% of first paycheck — comfortable</small>
-        </div>
-        <div class="demo-school" style="border-color: var(--border);">
-          <span>UNC Chapel Hill</span>
-          <strong>$381/mo</strong>
-          <small>9% of first paycheck — manageable</small>
-        </div>
-        <div class="demo-school risk">
-          <span>NYU</span>
-          <strong>$1,054/mo</strong>
-          <small>25% of first paycheck — high pressure</small>
-        </div>
-        <div class="demo-gap">
-          <div class="demo-gap-label mono">age 25 monthly difference</div>
-          <div class="demo-gap-amount">$808/month</div>
-          <p>That's rent, savings, travel, and emergency money — competing with one school name on a diploma.</p>
-        </div>
-      </aside>
-    </div>
-  </section>
-
-  <!-- FORM SECTION -->
-  <section id="form-section" class="form-section">
-    <div class="form-container">
-      <div class="form-header">
-        <span class="form-step-tag mono">step 01 — enter your schools</span>
-        <h2 class="form-title">Tell us where you're applying</h2>
-        <p class="form-desc">Enter any 3 US colleges. We'll handle the math.</p>
-      </div>
-
-      <div class="schools-grid">
-        <div class="school-input-card" data-school="1">
-          <div class="school-input-num mono">01</div>
-          <div class="school-input-inner">
-            <label class="school-label mono">First school</label>
-            <input type="text" id="school1" class="school-input" placeholder="e.g. Arizona State" autocomplete="off" />
-            <div class="school-autocomplete" id="ac1"></div>
-          </div>
-        </div>
-        <div class="school-input-card" data-school="2">
-          <div class="school-input-num mono">02</div>
-          <div class="school-input-inner">
-            <label class="school-label mono">Second school</label>
-            <input type="text" id="school2" class="school-input" placeholder="e.g. Howard University" autocomplete="off" />
-            <div class="school-autocomplete" id="ac2"></div>
-          </div>
-        </div>
-        <div class="school-input-card" data-school="3">
-          <div class="school-input-num mono">03</div>
-          <div class="school-input-inner">
-            <label class="school-label mono">Third school</label>
-            <input type="text" id="school3" class="school-input" placeholder="e.g. San Diego State" autocomplete="off" />
-            <div class="school-autocomplete" id="ac3"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-row-two">
-        <div class="select-group">
-          <label class="select-label mono">step 02 — your major</label>
-          <div class="custom-select-wrap">
-            <select id="major" class="custom-select">
-              <option value="">Choose your field...</option>
-              <option value="cs">Computer Science / Engineering</option>
-              <option value="business">Business / Finance / Economics</option>
-              <option value="nursing">Nursing / Healthcare</option>
-              <option value="education">Education / Teaching</option>
-              <option value="psychology">Psychology / Social Sciences</option>
-              <option value="arts">Arts / Humanities / Communications</option>
-              <option value="bio">Biology / Pre-Med</option>
-              <option value="law">Pre-Law / Political Science</option>
-              <option value="math">Mathematics / Statistics</option>
-              <option value="enviro">Environmental Science</option>
-            </select>
-            <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          <h1 class="hero-headline">
+            Pick a college<br/>
+            with your <em>future paycheck</em>.
+          </h1>
+          <p class="hero-sub">
+            Compare any 3 US colleges, your major, and your aid situation.
+            CollegeTrue turns tuition into a monthly payment, an age-25 budget snapshot,
+            and one brutally honest call.
+          </p>
+          <button class="cta-btn" onclick="scrollToForm()">
+            Run my reality check
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <span class="hero-stat-num">40%</span>
+              <span class="hero-stat-label mono">of students feel prepared to figure out full cost</span>
+            </div>
+            <div class="hero-stat-div"></div>
+            <div class="hero-stat">
+              <span class="hero-stat-num">38%</span>
+              <span class="hero-stat-label mono">of dropouts cite financial challenges as primary reason</span>
+            </div>
+            <div class="hero-stat-div"></div>
+            <div class="hero-stat">
+              <span class="hero-stat-num">10yr</span>
+              <span class="hero-stat-label mono">standard federal loan repayment period</span>
+            </div>
           </div>
         </div>
 
-        <div class="select-group">
-          <label class="select-label mono">step 03 — family income</label>
-          <div class="custom-select-wrap">
-            <select id="aid" class="custom-select">
-              <option value="low">Above $150k — minimal aid expected</option>
-              <option value="mid" selected>$75k–$150k — some aid possible</option>
-              <option value="high">Below $75k — significant aid likely</option>
-            </select>
-            <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        <aside class="hero-demo reveal-hero-late" aria-label="Example CollegeTrue result">
+          <div class="demo-topline">Example — CS major, mid income</div>
+          <div class="demo-school win">
+            <span>Ohio State</span>
+            <div class="demo-school-right">
+              <strong>$246/mo</strong>
+              <small>6% of paycheck — comfortable</small>
+            </div>
+          </div>
+          <div class="demo-school" style="border-color: var(--border);">
+            <span>UNC Chapel Hill</span>
+            <div class="demo-school-right">
+              <strong>$381/mo</strong>
+              <small>9% of paycheck — manageable</small>
+            </div>
+          </div>
+          <div class="demo-school risk">
+            <span>NYU</span>
+            <div class="demo-school-right">
+              <strong>$1,054/mo</strong>
+              <small>25% of paycheck — high pressure</small>
+            </div>
+          </div>
+          <div class="demo-gap">
+            <div class="demo-gap-label mono">age 25 monthly difference</div>
+            <div class="demo-gap-amount">$808/month</div>
+            <p>That's rent, savings, travel, and emergency money — competing with one school name on a diploma.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- FORM SECTION -->
+    <section id="form-section" class="form-section">
+      <div class="form-container">
+        <div class="form-header reveal-up">
+          <span class="form-step-tag mono">step 01 — enter your schools</span>
+          <h2 class="form-title">Tell us where you're applying</h2>
+          <p class="form-desc">Enter any 3 US colleges. We'll handle the math.</p>
+        </div>
+
+        <div class="schools-grid reveal-up" style="transition-delay: 0.1s">
+          <div class="school-input-card" data-school="1">
+            <div class="school-input-num mono">01</div>
+            <div class="school-input-inner">
+              <label class="school-label mono">First school</label>
+              <input type="text" id="school1" class="school-input" placeholder="e.g. Arizona State" autocomplete="off" />
+              <div class="school-autocomplete" id="ac1"></div>
+            </div>
+          </div>
+          <div class="school-input-card" data-school="2">
+            <div class="school-input-num mono">02</div>
+            <div class="school-input-inner">
+              <label class="school-label mono">Second school</label>
+              <input type="text" id="school2" class="school-input" placeholder="e.g. Howard University" autocomplete="off" />
+              <div class="school-autocomplete" id="ac2"></div>
+            </div>
+          </div>
+          <div class="school-input-card" data-school="3">
+            <div class="school-input-num mono">03</div>
+            <div class="school-input-inner">
+              <label class="school-label mono">Third school</label>
+              <input type="text" id="school3" class="school-input" placeholder="e.g. San Diego State" autocomplete="off" />
+              <div class="school-autocomplete" id="ac3"></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="form-submit-row">
-        <button class="run-btn" id="run-btn" onclick="runAnalysis()">
-          <span class="run-btn-text">Calculate my reality</span>
-          <span class="run-btn-icon">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          </span>
-        </button>
-        <p class="form-note mono">Searches US Dept. of Education College Scorecard, with local fallback estimates when live data is unavailable.</p>
-      </div>
-
-      <div id="form-error" class="form-error"></div>
-    </div>
-  </section>
-
-  <!-- LOADING -->
-  <section id="loading-section" class="loading-section" style="display:none">
-    <div class="loading-inner">
-      <div class="loading-bars">
-        <div class="loading-bar"></div>
-        <div class="loading-bar"></div>
-        <div class="loading-bar"></div>
-      </div>
-      <p class="loading-text mono" id="loading-text">Searching College Scorecard...</p>
-    </div>
-  </section>
-
-  <!-- RESULTS -->
-  <section id="results-section" class="results-section" style="display:none">
-    <div class="results-container">
-
-      <div class="results-header">
-        <div class="results-header-left">
-          <span class="results-tag mono">your reality check</span>
-          <h2 class="results-title" id="results-title">The Numbers Don't Lie</h2>
-        </div>
-        <button class="reset-btn" onclick="resetApp()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.85"/></svg>
-          Start over
-        </button>
-      </div>
-
-      <!-- SCORE CARDS -->
-      <div class="score-cards" id="score-cards"></div>
-
-      <!-- AGE 25 SNAPSHOT -->
-      <div class="section-divider">
-        <span class="mono">age 25 snapshot — after essentials and loans</span>
-      </div>
-      <div class="snapshot-section" id="snapshot-section"></div>
-
-      <!-- BURDEN BARS -->
-      <div class="section-divider">
-        <span class="mono">monthly loan burden — as % of your first paycheck</span>
-      </div>
-      <div class="burden-section" id="burden-bars"></div>
-
-      <!-- LIFE TIMELINE -->
-      <div class="section-divider">
-        <span class="mono">life timeline — financial picture year by year</span>
-      </div>
-      <div class="timeline-section" id="timeline-section"></div>
-
-      <!-- VERDICT -->
-      <div class="verdict-section" id="verdict-section"></div>
-
-      <!-- SHARE -->
-      <div class="share-section">
-        <div class="share-inner">
-          <div class="share-text-group">
-            <p class="share-headline">Challenge a friend.</p>
-            <p class="share-sub mono">60% of students don't feel prepared to understand college costs. Be the one who does.</p>
+        <div class="form-row-two reveal-up" style="transition-delay: 0.2s">
+          <div class="select-group">
+            <label class="select-label mono">step 02 — your major</label>
+            <div class="custom-select-wrap">
+              <select id="major" class="custom-select">
+                <option value="">Choose your field...</option>
+                <option value="cs">Computer Science / Engineering</option>
+                <option value="business">Business / Finance / Economics</option>
+                <option value="nursing">Nursing / Healthcare</option>
+                <option value="education">Education / Teaching</option>
+                <option value="psychology">Psychology / Social Sciences</option>
+                <option value="arts">Arts / Humanities / Communications</option>
+                <option value="bio">Biology / Pre-Med</option>
+                <option value="law">Pre-Law / Political Science</option>
+                <option value="math">Mathematics / Statistics</option>
+                <option value="enviro">Environmental Science</option>
+              </select>
+              <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
           </div>
-          <div class="share-btns">
-            <button class="share-btn primary" onclick="copyShareLink()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-              Copy link
-            </button>
-            <button class="share-btn secondary" onclick="runNewSearch()">Try different schools</button>
+
+          <div class="select-group">
+            <label class="select-label mono">step 03 — family income</label>
+            <div class="custom-select-wrap">
+              <select id="aid" class="custom-select">
+                <option value="low">Above $150k — minimal aid expected</option>
+                <option value="mid" selected>$75k–$150k — some aid possible</option>
+                <option value="high">Below $75k — significant aid likely</option>
+              </select>
+              <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
           </div>
         </div>
+
+        <div class="form-submit-row reveal-up" style="transition-delay: 0.3s">
+          <button class="run-btn" id="run-btn" onclick="runAnalysis()">
+            <span class="run-btn-text">Calculate my reality</span>
+            <span class="run-btn-icon">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </span>
+          </button>
+          <p class="form-note mono">Searches US Dept. of Education College Scorecard, with local fallback estimates when live data is unavailable.</p>
+        </div>
+
+        <div id="form-error" class="form-error"></div>
       </div>
+    </section>
 
-    </div>
-  </section>
-
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-logo">College<span class="accent">True</span></div>
-      <div class="footer-texts">
-        <p class="footer-text">Data modeled from US Dept of Education College Scorecard tuition fields, public net-price benchmarks, and Bureau of Labor Statistics salary ranges. Estimates assume you finance the full net cost — always verify with each school's Net Price Calculator.</p>
-        <p class="footer-text">Live lookup uses the public College Scorecard API. For production, replace DEMO_KEY with a free data.gov API key at api.data.gov/signup.</p>
+    <!-- LOADING -->
+    <section id="loading-section" class="loading-section" style="display:none">
+      <div class="loading-inner">
+        <div class="loading-bars">
+          <div class="loading-bar"></div>
+          <div class="loading-bar"></div>
+          <div class="loading-bar"></div>
+        </div>
+        <p class="loading-text mono" id="loading-text">Searching College Scorecard...</p>
       </div>
-    </div>
-  </footer>
+    </section>
 
-  <script src="js/data.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/calc.js"></script>
-  <script src="js/render.js"></script>
-  <script src="js/app.js"></script>
-</body>
+    <!-- RESULTS -->
+    <section id="results-section" class="results-section" style="display:none">
+      <div class="results-container">
+
+        <div class="results-header reveal-up">
+          <div class="results-header-left">
+            <span class="results-tag mono">your reality check</span>
+            <h2 class="results-title" id="results-title">The Numbers Don't Lie</h2>
+          </div>
+          <button class="reset-btn" onclick="resetApp()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.85"/></svg>
+            Start over
+          </button>
+        </div>
+
+        <!-- SCORE CARDS -->
+        <div class="score-cards" id="score-cards"></div>
+
+        <!-- AGE 25 SNAPSHOT -->
+        <div class="section-divider reveal-up">
+          <span class="mono">age 25 snapshot — after essentials and loans</span>
+        </div>
+        <div class="snapshot-section" id="snapshot-section"></div>
+
+        <!-- BURDEN BARS -->
+        <div class="section-divider reveal-up">
+          <span class="mono">monthly loan burden — as % of your first paycheck</span>
+        </div>
+        <div class="burden-section" id="burden-bars"></div>
+
+        <!-- LIFE TIMELINE -->
+        <div class="section-divider reveal-up">
+          <span class="mono">life timeline — financial picture year by year</span>
+        </div>
+        <div class="timeline-section" id="timeline-section"></div>
+
+        <!-- VERDICT -->
+        <div class="verdict-section" id="verdict-section"></div>
+
+        <!-- SHARE -->
+        <div class="share-section reveal-up">
+          <div class="share-inner">
+            <div class="share-text-group">
+              <p class="share-headline">Challenge a friend.</p>
+              <p class="share-sub mono">60% of students don't feel prepared to understand college costs. Be the one who does.</p>
+            </div>
+            <div class="share-btns">
+              <button class="share-btn primary" onclick="copyShareLink()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                Copy link
+              </button>
+              <button class="share-btn secondary" onclick="runNewSearch()">Try different schools</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer reveal-up">
+      <div class="footer-inner">
+        <div class="footer-logo">College<span class="accent">True</span></div>
+        <div class="footer-texts">
+          <p class="footer-text">Data modeled from US Dept of Education College Scorecard tuition fields, public net-price benchmarks, and Bureau of Labor Statistics salary ranges. Estimates assume you finance the full net cost — always verify with each school's Net Price Calculator.</p>
+          <p class="footer-text">Live lookup uses the public College Scorecard API. For production, replace DEMO_KEY with a free data.gov API key at api.data.gov/signup.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/calc.js"></script>
+    <script src="js/render.js"></script>
+    <script src="js/app.js"></script>
+  </body>
 </html>
