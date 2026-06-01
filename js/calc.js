@@ -137,16 +137,21 @@ async function calcSchool(rawName, majorKey, aidLevel) {
   const freedomPct     = Math.max(0, Math.round((breathingRoom / netMonthly) * 100));
 
   // Timeline (years 22–30)
+  // Salary grows ~4%/yr (BLS median + typical merit raises) — makes bars grow over time
+  const ANNUAL_RAISE = 0.04;
   const timeline = [];
   let cumulativeSaved = 0;
   for (let yr = 0; yr <= 8; yr++) {
     const age = 22 + yr;
     const stillInRepayment = yr < LOAN_YEARS;
-    const payment = stillInRepayment ? monthlyPayment * 12 : 0;
-    const annualNet = netMonthly * 12;
-    const living = adjustedLiving * 12;
-    const saved  = Math.max(0, annualNet - payment - living);
-    cumulativeSaved += saved;
+    // Compound salary growth — this is what makes bars get taller each year
+    const yearlyGross = major.startSalary * Math.pow(1 + ANNUAL_RAISE, yr);
+    const yearlyNet   = Math.round(yearlyGross * (1 - TAXES_PCT));
+    const annualNet   = yearlyNet;
+    const payment     = stillInRepayment ? monthlyPayment * 12 : 0;
+    const living      = adjustedLiving * 12;
+    const saved       = Math.max(0, annualNet - payment - living);
+    cumulativeSaved  += saved;
     timeline.push({ age, stillInRepayment, payment, annualNet, living, saved, cumulativeSaved });
   }
 
