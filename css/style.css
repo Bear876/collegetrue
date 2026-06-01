@@ -1083,6 +1083,37 @@ body {
   max-width: 680px;
 }
 .verdict-body strong { color: #fff; }
+
+/* Tie-breaking explanation */
+.verdict-tie-note {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  line-height: 1.55;
+}
+
+/* Per-school comparison rows */
+.verdict-comparisons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.verdict-comparison-row {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.55;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  border-left: 3px solid rgba(255,255,255,0.15);
+}
+.verdict-comparison-row strong { color: #fff; }
+
 .verdict-scores {
   display: flex;
   flex-direction: column;
@@ -1095,8 +1126,18 @@ body {
   justify-content: space-between;
   font-size: 0.85rem;
   color: rgba(255,255,255,0.7);
-  padding: 8px 0;
+  padding: 10px 0;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.verdict-score-name { font-weight: 500; }
+.verdict-score-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.verdict-score-detail {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.45);
 }
 .verdict-score-num {
   font-family: 'DM Mono', monospace;
