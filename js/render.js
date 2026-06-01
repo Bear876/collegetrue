@@ -18,10 +18,15 @@ const HH = {
 // ---- Logo helpers ----
 
 function getSchoolLogoUrl(school) {
-  // Check known domain map first
   const key = (school.name || '').toLowerCase().trim();
   const domain = school.domain || SCHOOL_DOMAINS[key] || guessDomain(key, school.state);
   if (!domain) return null;
+  // Google's favicon service is reliable for .edu domains — returns the actual university favicon/logo
+  return `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
+}
+
+function getSchoolLogoFallbackUrl(domain) {
+  // Clearbit as secondary attempt
   return `https://logo.clearbit.com/${domain}`;
 }
 
@@ -65,7 +70,9 @@ function guessDomain(name, state) {
 }
 
 function renderLogoOrInitials(school) {
-  const logoUrl = getSchoolLogoUrl(school);
+  const key = (school.name || '').toLowerCase().trim();
+  const domain = school.domain || (typeof SCHOOL_DOMAINS !== 'undefined' && SCHOOL_DOMAINS[key]) || guessDomain(key, school.state);
+
   const initials = (school.name || '??')
     .split(/\s+/)
     .filter(w => /^[A-Z]/i.test(w))
@@ -73,23 +80,27 @@ function renderLogoOrInitials(school) {
     .map(w => w[0].toUpperCase())
     .join('');
 
-  const colorSeed = (school.name || '').charCodeAt(0) % 6;
+  const colorSeed = (school.name || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 6;
   const palettes = [
-    ['#dbeafe','#1d4ed8'],['#dcfce7','#15803d'],['#fef3c7','#b45309'],
-    ['#fce7f3','#be185d'],['#ede9fe','#6d28d9'],['#e0f2fe','#0369a1'],
+    ['#dbeafe','#1d4ed8'],['#dcfce7','#15803d'],['#fef3c7','#92400e'],
+    ['#fce7f3','#be185d'],['#ede9fe','#5b21b6'],['#e0f2fe','#075985'],
   ];
   const [bg, fg] = palettes[colorSeed];
 
-  if (logoUrl) {
+  const fallbackHtml = `<div class="school-logo-fallback" style="display:none; background:${bg}; color:${fg};">${initials}</div>`;
+
+  if (domain) {
+    const googleUrl = `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
+    const clearbitUrl = `https://logo.clearbit.com/${domain}`;
     return `
       <div class="school-logo-wrap">
         <img
           class="school-logo"
-          src="${logoUrl}"
+          src="${googleUrl}"
           alt="${school.name} logo"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          onerror="if(this.dataset.tried==='clearbit'){this.style.display='none';this.nextElementSibling.style.display='flex';}else{this.dataset.tried='clearbit';this.src='${clearbitUrl}';}"
         />
-        <div class="school-logo-fallback" style="display:none; background:${bg}; color:${fg};">${initials}</div>
+        ${fallbackHtml}
       </div>
     `;
   }
@@ -284,10 +295,17 @@ function renderTimeline(results) {
   const container = document.getElementById('timeline-section');
   container.innerHTML = '';
 
-  // Fix: use annualNet as the scale basis so bars show even when savings = 0.
-  // We show two stacked segments: loan payment (red/amber) + breathing room (green).
-  // This way a school with $0 savings still has visible bars (showing where money goes).
   const maxAnnualNet = Math.max(...results.flatMap(r => r.timeline.map(t => t.annualNet)));
+
+  // ---- One global legend at the top — always the same ----
+  const globalLegend = document.createElement('div');
+  globalLegend.className = 'timeline-legend-global reveal-up';
+  globalLegend.innerHTML = `
+    <span class="tl-legend-item"><span class="tl-dot" style="background:#2e7d6e;"></span><span>Savings / free cash</span></span>
+    <span class="tl-legend-item"><span class="tl-dot" style="background:#c8d4dc;"></span><span>Living costs</span></span>
+    <span class="tl-legend-item"><span class="tl-dot" style="background:#c05a48; opacity:0.75;"></span><span>Loan payment</span></span>
+  `;
+  container.appendChild(globalLegend);
 
   results.forEach((r, ri) => {
     const wrap = document.createElement('div');
@@ -298,16 +316,15 @@ function renderTimeline(results) {
     const barAccent = scoreColor === 'green' ? HH.green : scoreColor === 'amber' ? HH.amber : HH.red;
     const totalSaved = r.timeline[r.timeline.length - 1].cumulativeSaved;
 
-    wrap.innerHTML = `<div class="timeline-school-label">${r.school.name} <span class="mono" style="font-size:0.55rem; color:var(--ink3); font-weight:400;">· $${Math.round(totalSaved).toLocaleString()} saved by 30</span></div>`;
+    wrap.innerHTML = `<div class="timeline-school-label">${r.school.name} <span class="timeline-saved-label">· $${Math.round(totalSaved).toLocaleString()} saved by age 30</span></div>`;
 
     const track = document.createElement('div');
     track.className = 'timeline-track';
 
     r.timeline.forEach(t => {
-      const BAR_MAX = 80; // px tall at 100%
+      const BAR_MAX = 80;
       const scale = maxAnnualNet > 0 ? BAR_MAX / maxAnnualNet : 0;
 
-      // Segments as % of annual net income
       const paymentH = t.stillInRepayment ? Math.round(t.payment * scale) : 0;
       const savedH   = Math.round(Math.max(0, t.saved) * scale);
       const livingH  = Math.max(0, Math.round(t.annualNet * scale) - paymentH - savedH);
@@ -322,8 +339,8 @@ function renderTimeline(results) {
       col.innerHTML = `
         <div class="timeline-bar-stack" title="${tooltip}" style="height:${BAR_MAX}px;">
           <div class="timeline-seg saved"   style="height:${savedH}px;   background:${barAccent}; opacity:0.85;"></div>
-          <div class="timeline-seg living"  style="height:${livingH}px;  background:var(--haze-shore);"></div>
-          <div class="timeline-seg payment" style="height:${paymentH}px; background:${paymentH > 0 ? HH.red : 'transparent'}; opacity:0.65;"></div>
+          <div class="timeline-seg living"  style="height:${livingH}px;  background:#c8d4dc;"></div>
+          <div class="timeline-seg payment" style="height:${paymentH}px; background:${paymentH > 0 ? '#c05a48' : 'transparent'}; opacity:0.65;"></div>
         </div>
         <div class="timeline-age mono">${t.age}</div>
       `;
@@ -331,17 +348,6 @@ function renderTimeline(results) {
     });
 
     wrap.appendChild(track);
-
-    // Legend for this school
-    const legend = document.createElement('div');
-    legend.className = 'timeline-legend-row';
-    legend.innerHTML = `
-      <span><span class="tl-dot" style="background:${barAccent}"></span>Savings</span>
-      <span><span class="tl-dot" style="background:var(--haze-shore)"></span>Living costs</span>
-      ${r.timeline.some(t => t.stillInRepayment) ? `<span><span class="tl-dot" style="background:${HH.red}; opacity:0.65"></span>Loan payment</span>` : ''}
-    `;
-    wrap.appendChild(legend);
-
     container.appendChild(wrap);
   });
 
