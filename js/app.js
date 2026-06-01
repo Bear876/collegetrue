@@ -19,11 +19,11 @@ function initReveal() {
       }
     });
   }, {
-    threshold: 0.08,
-    rootMargin: '0px 0px -40px 0px',
+    threshold: 0.06,
+    rootMargin: '0px 0px -32px 0px',
   });
 
-  document.querySelectorAll('.reveal-up:not(.revealed)').forEach(el => {
+  document.querySelectorAll('.reveal-up:not(.revealed), .reveal-scale:not(.revealed), .reveal-left:not(.revealed)').forEach(el => {
     revealObserver.observe(el);
   });
 }
@@ -216,6 +216,26 @@ function showSection(id) {
   setTimeout(() => initReveal(), 60);
 }
 
+// ---- Input validation ----
+
+function looksLikeCollege(input) {
+  const val = input.trim();
+  if (!val || val.length < 2) return false;
+
+  // Reject pure numbers or very short strings
+  if (/^\d+$/.test(val)) return false;
+  if (/^[\d\s\W]+$/.test(val)) return false; // only digits, spaces, symbols
+
+  // Must have at least one real word (3+ letters)
+  const words = val.split(/\s+/).filter(w => /[a-zA-Z]{3,}/.test(w));
+  if (words.length === 0) return false;
+
+  // Single-character or single-digit inputs
+  if (val.length <= 2 && !/[a-zA-Z]{2}/.test(val)) return false;
+
+  return true;
+}
+
 // ---- Main analysis ----
 
 async function runAnalysis() {
@@ -229,6 +249,12 @@ async function runAnalysis() {
 
   if (!s1 || !s2 || !s3) {
     showError('Please enter all three schools before running the analysis.');
+    return;
+  }
+
+  const invalidInputs = [s1, s2, s3].filter(s => !looksLikeCollege(s));
+  if (invalidInputs.length > 0) {
+    showError(`"${invalidInputs[0]}" doesn't look like a college name. Please enter valid US college or university names.`);
     return;
   }
   if (!majorKey) {
