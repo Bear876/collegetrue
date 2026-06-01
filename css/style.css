@@ -60,14 +60,8 @@ body {
    ============================================ */
 
 @keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(28px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
@@ -75,12 +69,22 @@ body {
   to   { opacity: 1; }
 }
 
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 /* Hero entrance — plays immediately on load */
 .reveal-hero {
   opacity: 0;
-  transform: translateY(32px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translateY(36px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .reveal-hero.revealed {
   opacity: 1;
@@ -90,25 +94,49 @@ body {
 .reveal-hero-late {
   opacity: 0;
   transform: translateY(24px);
-  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
-  transition-delay: 0.18s;
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: 0.22s;
 }
 .reveal-hero-late.revealed {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* Scroll-triggered reveal */
+/* Scroll-triggered reveal — base */
 .reveal-up {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translateY(30px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .reveal-up.revealed {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Scale-in variant for cards */
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.93) translateY(20px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-scale.revealed {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* Slide-left variant */
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-24px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-left.revealed {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 /* ============================================
@@ -642,12 +670,27 @@ body {
   padding: 22px;
   position: relative;
   overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s;
 }
-.score-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.score-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
 .score-card.winner {
-  border-color: rgba(46,125,110,0.4);
+  border-color: rgba(46,125,110,0.45);
   box-shadow: 0 0 0 1px rgba(46,125,110,0.15), var(--shadow);
+}
+.score-card.winner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(46,125,110,0.07), transparent);
+  animation: cardShimmer 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes cardShimmer {
+  0%   { left: -60%; }
+  60%  { left: 120%; }
+  100% { left: 120%; }
 }
 .score-card.worst {
   border-color: rgba(192,90,72,0.35);
@@ -703,9 +746,9 @@ body {
 
 /* College Logo */
 .school-logo-wrap {
-  width: 54px;
-  height: 54px;
-  border-radius: 10px;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
   border: 1.5px solid var(--border);
   overflow: hidden;
   background: var(--surface2);
@@ -713,12 +756,18 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(30,47,60,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.score-card:hover .school-logo-wrap {
+  transform: scale(1.06);
+  box-shadow: 0 4px 14px rgba(30,47,60,0.14);
 }
 .school-logo {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 6px;
+  padding: 7px;
 }
 .school-logo-fallback {
   width: 100%;
@@ -727,10 +776,9 @@ body {
   align-items: center;
   justify-content: center;
   font-family: 'Instrument Serif', serif;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--ink3);
-  background: var(--surface2);
+  letter-spacing: -0.02em;
 }
 
 .score-bar-wrap {
