@@ -348,5 +348,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Kick off hero entrance + scroll reveal
   runHeroAnimation();
-  setTimeout(() => initReveal(), 300);
+  // Small delay so hero animation fires first, then observe everything else
+  setTimeout(() => initReveal(), 100);
 });
