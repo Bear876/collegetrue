@@ -253,31 +253,67 @@ function renderTimeline(results) {
   const container = document.getElementById('timeline-section');
   container.innerHTML = '';
 
-  const maxCumulative = Math.max(...results.flatMap(r => r.timeline.map(t => t.cumulativeSaved)));
+  // Fix: use annualNet as the scale basis so bars show even when savings = 0.
+  // We show two stacked segments: loan payment (red/amber) + breathing room (green).
+  // This way a school with $0 savings still has visible bars (showing where money goes).
+  const maxAnnualNet = Math.max(...results.flatMap(r => r.timeline.map(t => t.annualNet)));
 
   results.forEach((r, ri) => {
     const wrap = document.createElement('div');
     wrap.className = 'timeline-school reveal-up';
     wrap.style.transitionDelay = `${ri * 0.12}s`;
-    wrap.innerHTML = `<div class="timeline-school-label">${r.school.name}</div>`;
+
+    const scoreColor = getScoreColor(r.score);
+    const barAccent = scoreColor === 'green' ? HH.green : scoreColor === 'amber' ? HH.amber : HH.red;
+    const totalSaved = r.timeline[r.timeline.length - 1].cumulativeSaved;
+
+    wrap.innerHTML = `<div class="timeline-school-label">${r.school.name} <span class="mono" style="font-size:0.55rem; color:var(--ink3); font-weight:400;">· $${Math.round(totalSaved).toLocaleString()} saved by 30</span></div>`;
 
     const track = document.createElement('div');
     track.className = 'timeline-track';
 
     r.timeline.forEach(t => {
-      const barH = maxCumulative > 0 ? Math.round((t.cumulativeSaved / maxCumulative) * 80) : 0;
-      const col  = document.createElement('div');
+      const BAR_MAX = 80; // px tall at 100%
+      const scale = maxAnnualNet > 0 ? BAR_MAX / maxAnnualNet : 0;
+
+      // Segments as % of annual net income
+      const paymentH = t.stillInRepayment ? Math.round(t.payment * scale) : 0;
+      const savedH   = Math.round(Math.max(0, t.saved) * scale);
+      const livingH  = Math.max(0, Math.round(t.annualNet * scale) - paymentH - savedH);
+
+      const col = document.createElement('div');
       col.className = `timeline-col${t.stillInRepayment ? ' repaying' : ' free'}`;
+
+      const tooltip = t.stillInRepayment
+        ? `Age ${t.age}: $${Math.round(t.payment).toLocaleString()} loans, $${Math.round(t.saved).toLocaleString()} saved`
+        : `Age ${t.age}: Debt-free! $${Math.round(t.saved).toLocaleString()} saved this year`;
+
       col.innerHTML = `
-        <div class="timeline-bar" style="height: ${barH}px;" title="Age ${t.age}: $${Math.round(t.cumulativeSaved).toLocaleString()} saved"></div>
+        <div class="timeline-bar-stack" title="${tooltip}" style="height:${BAR_MAX}px;">
+          <div class="timeline-seg saved"   style="height:${savedH}px;   background:${barAccent}; opacity:0.85;"></div>
+          <div class="timeline-seg living"  style="height:${livingH}px;  background:var(--haze-shore);"></div>
+          <div class="timeline-seg payment" style="height:${paymentH}px; background:${paymentH > 0 ? HH.red : 'transparent'}; opacity:0.65;"></div>
+        </div>
         <div class="timeline-age mono">${t.age}</div>
       `;
       track.appendChild(col);
     });
 
     wrap.appendChild(track);
+
+    // Legend for this school
+    const legend = document.createElement('div');
+    legend.className = 'timeline-legend-row';
+    legend.innerHTML = `
+      <span><span class="tl-dot" style="background:${barAccent}"></span>Savings</span>
+      <span><span class="tl-dot" style="background:var(--haze-shore)"></span>Living costs</span>
+      ${r.timeline.some(t => t.stillInRepayment) ? `<span><span class="tl-dot" style="background:${HH.red}; opacity:0.65"></span>Loan payment</span>` : ''}
+    `;
+    wrap.appendChild(legend);
+
     container.appendChild(wrap);
   });
+
   requestAnimationFrame(() => { setTimeout(() => initReveal(), 80); });
 }
 
