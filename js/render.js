@@ -364,16 +364,31 @@ function renderVerdict(results) {
   const container = document.getElementById('verdict-section');
   container.innerHTML = '';
 
-  const sorted   = [...results].sort((a, b) => {
+  const sorted = [...results].sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     return a.monthlyPayment - b.monthlyPayment;
   });
   const winner   = sorted[0];
-  const runnerUp = sorted[1];
-  const worst    = sorted[sorted.length - 1];
+  const others   = sorted.slice(1); // everyone the winner beats
 
-  const monthlySaved = winner.monthlyPayment < worst.monthlyPayment
-    ? worst.monthlyPayment - winner.monthlyPayment : 0;
+  // Check if it was a score tie (winner won purely on lower payment)
+  const tiedSchools = results.filter(r => r.score === winner.score);
+  const wasTie = tiedSchools.length > 1;
+
+  // Build a comparison line for each other school
+  const comparisonLines = others.map(other => {
+    const diff = other.monthlyPayment - winner.monthlyPayment;
+    if (diff <= 0) {
+      // winner actually costs more monthly (edge case — shouldn't happen after sort, but be safe)
+      return `<strong>${other.school.name}</strong> has a similar monthly cost (${formatDollars(other.monthlyPayment)}/mo vs. ${formatDollars(winner.monthlyPayment)}/mo).`;
+    }
+    return `vs. <strong>${other.school.name}</strong>: <strong>${formatDollars(diff)}/mo less</strong> — that's ${formatDollars(diff * 12)}/yr, or ${formatDollars(diff * 120)} over 10 years.`;
+  });
+
+  // Tie-breaking explanation
+  const tieNote = wasTie
+    ? `<p class="verdict-tie-note mono">⚖ ${tiedSchools.map(s => s.school.name).join(' and ')} both scored ${winner.score}/100 — identical financial health rating. ${winner.school.name} wins the tie because it has the lowest monthly payment (${formatDollars(winner.monthlyPayment)}/mo), meaning more money in your pocket every single month.</p>`
+    : '';
 
   const div = document.createElement('div');
   div.className = 'verdict-inner reveal-up';
@@ -382,18 +397,18 @@ function renderVerdict(results) {
     <h3 class="verdict-headline">
       ${winner.school.name} is your <em>smartest financial bet</em>.
     </h3>
-    <p class="verdict-body">
-      Choosing ${winner.school.name} over ${worst.school.name} saves you
-      <strong>${formatDollars(monthlySaved)}/month</strong> in loan payments —
-      that's ${formatDollars(monthlySaved * 12)}/year you keep in your pocket.
-      Over the 10-year repayment window, the gap is
-      <strong>${formatDollars(monthlySaved * 120)}</strong>.
-    </p>
+    ${tieNote}
+    <div class="verdict-comparisons">
+      ${comparisonLines.map(line => `<div class="verdict-comparison-row">${line}</div>`).join('')}
+    </div>
     <div class="verdict-scores">
       ${sorted.map(r => `
         <div class="verdict-score-item">
-          <span>${r.school.name}</span>
-          <span class="verdict-score-num ${getScoreColor(r.score)}">${r.score}/100</span>
+          <span class="verdict-score-name">${r.school.name}</span>
+          <div class="verdict-score-right">
+            <span class="verdict-score-detail mono">${formatDollars(r.monthlyPayment)}/mo · ${r.paymentPct}% of paycheck</span>
+            <span class="verdict-score-num ${getScoreColor(r.score)}">${r.score}/100</span>
+          </div>
         </div>
       `).join('')}
     </div>
