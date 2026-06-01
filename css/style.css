@@ -908,35 +908,78 @@ body {
 /* ---- Timeline ---- */
 
 .timeline-section { margin-bottom: 48px; }
-.timeline-school { margin-bottom: 28px; }
+.timeline-school { margin-bottom: 32px; }
 .timeline-school-label {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--ink2);
   margin-bottom: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 .timeline-track {
   display: flex;
   align-items: flex-end;
-  gap: 6px;
-  height: 100px;
-  padding-bottom: 20px;
+  gap: 5px;
   background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
-  padding: 12px 16px 24px;
+  padding: 14px 16px 24px;
   position: relative;
+  overflow: hidden;
 }
-.timeline-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; justify-content: flex-end; }
-.timeline-bar {
+.timeline-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: flex-end;
+}
+/* Stacked bar — segments sit bottom-up: payment (bottom), living (mid), savings (top) */
+.timeline-bar-stack {
   width: 100%;
-  max-width: 28px;
+  max-width: 30px;
+  display: flex;
+  flex-direction: column-reverse; /* payment at bottom visually */
   border-radius: 3px 3px 0 0;
-  transition: height 0.6s ease;
+  overflow: hidden;
+  cursor: default;
 }
-.timeline-col.repaying .timeline-bar { background: rgba(192,90,72,0.45); }
-.timeline-col.free .timeline-bar     { background: rgba(46,125,110,0.45); }
-.timeline-age { font-size: 0.6rem; color: var(--ink3); font-family: 'DM Mono', monospace; }
+.timeline-seg {
+  width: 100%;
+  transition: height 0.6s cubic-bezier(0.16,1,0.3,1);
+  flex-shrink: 0;
+}
+.timeline-seg.saved   { border-radius: 3px 3px 0 0; }
+.timeline-seg.payment { border-radius: 0; }
+.timeline-seg.living  { border-radius: 0; }
+.timeline-col.free .timeline-seg.payment { display: none; }
+.timeline-age {
+  font-size: 0.52rem;
+  color: var(--ink3);
+  font-family: 'DM Mono', monospace;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+.timeline-legend-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--ink3);
+  flex-wrap: wrap;
+}
+.tl-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
 
 /* ---- Verdict ---- */
 
