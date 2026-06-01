@@ -26,17 +26,37 @@ function getSchoolLogoUrl(school) {
 }
 
 function guessDomain(name, state) {
-  // Try a few common patterns
+  const n = name.toLowerCase();
+
+  // Common abbreviation patterns
+  const abbrevMap = {
+    'mit': 'mit.edu', 'nyu': 'nyu.edu', 'usc': 'usc.edu', 'ucla': 'ucla.edu',
+    'ucsd': 'ucsd.edu', 'ucsb': 'ucsb.edu', 'ucd': 'ucdavis.edu', 'ucb': 'berkeley.edu',
+    'ucf': 'ucf.edu', 'uci': 'uci.edu', 'uva': 'virginia.edu', 'unc': 'unc.edu',
+    'uf': 'ufl.edu', 'asu': 'asu.edu', 'rpi': 'rpi.edu', 'wpi': 'wpi.edu',
+    'smu': 'smu.edu', 'lsu': 'lsu.edu', 'tcu': 'tcu.edu', 'byu': 'byu.edu',
+    'vcu': 'vcu.edu', 'gmu': 'gmu.edu', 'gsu': 'gsu.edu', 'fsu': 'fsu.edu',
+    'csu': 'colostate.edu', 'uiuc': 'illinois.edu', 'upenn': 'upenn.edu',
+    'pitt': 'pitt.edu', 'ohio state': 'osu.edu', 'penn state': 'psu.edu',
+    'ut austin': 'utexas.edu', 'georgia tech': 'gatech.edu',
+    'michigan state': 'msu.edu', 'iowa state': 'iastate.edu',
+    'ohio state university': 'osu.edu', 'university of michigan': 'umich.edu',
+  };
+  for (const [k, v] of Object.entries(abbrevMap)) {
+    if (n === k || n.includes(k)) return v;
+  }
+
   const clean = name
     .replace(/\buniversity\b/gi, '')
     .replace(/\bcollege\b/gi, '')
     .replace(/\bstate\b/gi, '')
     .replace(/\bof\b/gi, '')
     .replace(/\bthe\b/gi, '')
+    .replace(/\bat\b/gi, '')
     .replace(/[^a-z0-9\s]/gi, '')
     .trim()
     .split(/\s+/)
-    .filter(Boolean);
+    .filter(w => w.length > 1);
 
   if (clean.length === 0) return null;
   const slug = clean.slice(0, 2).join('').toLowerCase();
@@ -53,6 +73,13 @@ function renderLogoOrInitials(school) {
     .map(w => w[0].toUpperCase())
     .join('');
 
+  const colorSeed = (school.name || '').charCodeAt(0) % 6;
+  const palettes = [
+    ['#dbeafe','#1d4ed8'],['#dcfce7','#15803d'],['#fef3c7','#b45309'],
+    ['#fce7f3','#be185d'],['#ede9fe','#6d28d9'],['#e0f2fe','#0369a1'],
+  ];
+  const [bg, fg] = palettes[colorSeed];
+
   if (logoUrl) {
     return `
       <div class="school-logo-wrap">
@@ -62,13 +89,13 @@ function renderLogoOrInitials(school) {
           alt="${school.name} logo"
           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
         />
-        <div class="school-logo-fallback" style="display:none">${initials}</div>
+        <div class="school-logo-fallback" style="display:none; background:${bg}; color:${fg};">${initials}</div>
       </div>
     `;
   }
   return `
     <div class="school-logo-wrap">
-      <div class="school-logo-fallback">${initials}</div>
+      <div class="school-logo-fallback" style="background:${bg}; color:${fg};">${initials}</div>
     </div>
   `;
 }
@@ -79,7 +106,10 @@ function renderScoreCards(results) {
   const container = document.getElementById('score-cards');
   container.innerHTML = '';
 
-  const sorted = [...results].sort((a, b) => b.score - a.score);
+  const sorted = [...results].sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.monthlyPayment - b.monthlyPayment; // tie-break: lower payment wins
+  });
   const winnerName = sorted[0].school.name;
   const worstName  = sorted[sorted.length - 1].school.name;
 
@@ -92,7 +122,7 @@ function renderScoreCards(results) {
     const barHex = scoreColor === 'green' ? HH.green : scoreColor === 'amber' ? HH.amber : HH.red;
 
     const card = document.createElement('div');
-    card.className = `score-card ${cardClass} reveal-up`;
+    card.className = `score-card ${cardClass} reveal-scale`;
     card.style.transitionDelay = `${i * 0.12}s`;
 
     card.innerHTML = `
@@ -157,14 +187,15 @@ function renderBurdenBars(results) {
   const maxPayment = Math.max(...results.map(r => r.monthlyPayment));
   const maxPct     = Math.max(...results.map(r => r.paymentPct));
 
-  results.forEach(r => {
+  results.forEach((r, idx) => {
     const barPct    = maxPayment > 0 ? Math.round((r.monthlyPayment / maxPayment) * 100) : 0;
     const barColor  = getBarColor(r.paymentPct);
     const thresh15  = Math.max(8, Math.min(92, maxPct > 0 ? Math.round((15 / maxPct) * 100) : 50));
     const thresh25  = Math.max(8, Math.min(92, maxPct > 0 ? Math.round((25 / maxPct) * 100) : 80));
 
     const row = document.createElement('div');
-    row.className = 'burden-row reveal-up';
+    row.className = 'burden-row reveal-left';
+    row.style.transitionDelay = `${idx * 0.1}s`;
     row.innerHTML = `
       <div class="burden-row-header">
         <span class="burden-school-name">${r.school.name}</span>
@@ -327,7 +358,10 @@ function renderVerdict(results) {
   const container = document.getElementById('verdict-section');
   container.innerHTML = '';
 
-  const sorted   = [...results].sort((a, b) => b.score - a.score);
+  const sorted   = [...results].sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.monthlyPayment - b.monthlyPayment;
+  });
   const winner   = sorted[0];
   const runnerUp = sorted[1];
   const worst    = sorted[sorted.length - 1];
