@@ -30,25 +30,25 @@
 
     <div class="hero-main">
       <div class="hero-content">
-        <div class="hero-eyebrow">
+        <div class="hero-eyebrow reveal-hero">
           <span class="hero-eyebrow-tag mono">Financial Literacy Tool</span>
           <span class="hero-eyebrow-dot"></span>
           <span class="hero-eyebrow-tag mono">Free · No login</span>
         </div>
-        <h1 class="hero-headline">
+        <h1 class="hero-headline reveal-hero">
           Pick a college<br/>
           with your <em>future paycheck</em>.
         </h1>
-        <p class="hero-sub">
+        <p class="hero-sub reveal-hero">
           Compare any 3 US colleges, your major, and your aid situation.
           CollegeTrue turns tuition into a monthly payment, an age-25 budget snapshot,
           and one brutally honest call.
         </p>
-        <button class="cta-btn" onclick="scrollToForm()">
+        <button class="cta-btn reveal-hero" onclick="scrollToForm()">
           Run my reality check
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </button>
-        <div class="hero-stats">
+        <div class="hero-stats reveal-hero-late">
           <div class="hero-stat">
             <span class="hero-stat-num">40%</span>
             <span class="hero-stat-label mono">of students feel prepared to figure out full cost</span>
@@ -66,7 +66,7 @@
         </div>
       </div>
 
-      <aside class="hero-demo" aria-label="Example CollegeTrue result">
+      <aside class="hero-demo reveal-hero-late" aria-label="Example CollegeTrue result">
         <div class="demo-topline">Example — CS major, mid income</div>
         <div class="demo-school win">
           <span>Ohio State</span>
@@ -95,13 +95,13 @@
   <!-- FORM SECTION -->
   <section id="form-section" class="form-section">
     <div class="form-container">
-      <div class="form-header">
+      <div class="form-header reveal-up">
         <span class="form-step-tag mono">step 01 — enter your schools</span>
         <h2 class="form-title">Tell us where you're applying</h2>
         <p class="form-desc">Enter any 3 US colleges. We'll handle the math.</p>
       </div>
 
-      <div class="schools-grid">
+      <div class="schools-grid reveal-up">
         <div class="school-input-card" data-school="1">
           <div class="school-input-num mono">01</div>
           <div class="school-input-inner">
@@ -128,7 +128,7 @@
         </div>
       </div>
 
-      <div class="form-row-two">
+      <div class="form-row-two reveal-up">
         <div class="select-group">
           <label class="select-label mono">step 02 — your major</label>
           <div class="custom-select-wrap">
@@ -162,7 +162,7 @@
         </div>
       </div>
 
-      <div class="form-submit-row">
+      <div class="form-submit-row reveal-up">
         <button class="run-btn" id="run-btn" onclick="runAnalysis()">
           <span class="run-btn-text">Calculate my reality</span>
           <span class="run-btn-icon">
