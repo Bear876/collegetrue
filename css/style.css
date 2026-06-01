@@ -11,8 +11,8 @@
   --haze-fog:       #e8edf0;
   --haze-mist:      #dde4e9;
   --haze-shore:     #c8d4dc;
-  --haze-slate:     #8fa5b4;
-  --haze-depth:     #4a6478;
+  --haze-slate:     #2d3f50;
+  --haze-depth:     #1e2f3c;
   --haze-ink:       #1e2f3c;
   --haze-teal:      #2e7d6e;
   --haze-teal2:     #3a9480;
@@ -956,15 +956,44 @@ body {
 /* ---- Timeline ---- */
 
 .timeline-section { margin-bottom: 48px; }
+
+/* Global legend — shown once above all schools */
+.timeline-legend-global {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 12px 18px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+}
+.tl-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
 .timeline-school { margin-bottom: 32px; }
 .timeline-school-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--ink2);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink);
   margin-bottom: 10px;
   display: flex;
   align-items: baseline;
   gap: 8px;
+}
+.timeline-saved-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--ink2);
+  font-weight: 400;
 }
 .timeline-track {
   display: flex;
@@ -1011,22 +1040,13 @@ body {
   margin-top: 4px;
   white-space: nowrap;
 }
-.timeline-legend-row {
-  display: flex;
-  gap: 16px;
-  margin-top: 8px;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.55rem;
-  color: var(--ink3);
-  flex-wrap: wrap;
-}
+.timeline-legend-row { display: none; } /* replaced by global legend */
 .tl-dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  margin-right: 4px;
-  vertical-align: middle;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
 
 /* ---- Verdict ---- */
