@@ -86,19 +86,20 @@ function renderLogoOrInitials(school) {
     ['#fce7f3','#be185d'],['#ede9fe','#5b21b6'],['#e0f2fe','#075985'],
   ];
   const [bg, fg] = palettes[colorSeed];
-
   const fallbackHtml = `<div class="school-logo-fallback" style="display:none; background:${bg}; color:${fg};">${initials}</div>`;
 
   if (domain) {
-    const googleUrl = `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
-    const clearbitUrl = `https://logo.clearbit.com/${domain}`;
+    // Try in order: apple-touch-icon (180px, high-res) → Google favicon (128px) → Clearbit → initials
+    const src1 = `https://${domain}/apple-touch-icon.png`;
+    const src2 = `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
+    const src3 = `https://logo.clearbit.com/${domain}`;
     return `
       <div class="school-logo-wrap">
         <img
           class="school-logo"
-          src="${googleUrl}"
+          src="${src1}"
           alt="${school.name} logo"
-          onerror="if(this.dataset.tried==='clearbit'){this.style.display='none';this.nextElementSibling.style.display='flex';}else{this.dataset.tried='clearbit';this.src='${clearbitUrl}';}"
+          onerror="const t=this.dataset.t||'0';if(t==='0'){this.dataset.t='1';this.src='${src2}';}else if(t==='1'){this.dataset.t='2';this.src='${src3}';}else{this.style.display='none';this.nextElementSibling.style.display='flex';}"
         />
         ${fallbackHtml}
       </div>
@@ -307,13 +308,16 @@ function renderTimeline(results) {
   `;
   container.appendChild(globalLegend);
 
+  // Fixed colors that always match the legend key
+  const COLOR_SAVINGS = '#2e7d6e';
+  const COLOR_LIVING  = '#c8d4dc';
+  const COLOR_PAYMENT = '#c05a48';
+
   results.forEach((r, ri) => {
     const wrap = document.createElement('div');
     wrap.className = 'timeline-school reveal-up';
     wrap.style.transitionDelay = `${ri * 0.12}s`;
 
-    const scoreColor = getScoreColor(r.score);
-    const barAccent = scoreColor === 'green' ? HH.green : scoreColor === 'amber' ? HH.amber : HH.red;
     const totalSaved = r.timeline[r.timeline.length - 1].cumulativeSaved;
 
     wrap.innerHTML = `<div class="timeline-school-label">${r.school.name} <span class="timeline-saved-label">· $${Math.round(totalSaved).toLocaleString()} saved by age 30</span></div>`;
@@ -338,9 +342,9 @@ function renderTimeline(results) {
 
       col.innerHTML = `
         <div class="timeline-bar-stack" title="${tooltip}" style="height:${BAR_MAX}px;">
-          <div class="timeline-seg saved"   style="height:${savedH}px;   background:${barAccent}; opacity:0.85;"></div>
-          <div class="timeline-seg living"  style="height:${livingH}px;  background:#c8d4dc;"></div>
-          <div class="timeline-seg payment" style="height:${paymentH}px; background:${paymentH > 0 ? '#c05a48' : 'transparent'}; opacity:0.65;"></div>
+          <div class="timeline-seg saved"   style="height:${savedH}px;   background:${COLOR_SAVINGS};"></div>
+          <div class="timeline-seg living"  style="height:${livingH}px;  background:${COLOR_LIVING};"></div>
+          <div class="timeline-seg payment" style="height:${paymentH}px; background:${paymentH > 0 ? COLOR_PAYMENT : 'transparent'};"></div>
         </div>
         <div class="timeline-age mono">${t.age}</div>
       `;
